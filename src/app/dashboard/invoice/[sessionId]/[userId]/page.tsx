@@ -166,7 +166,7 @@ export default function InvoicePage() {
         <div className="invoice-header">
           <div className="header-left">
             <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-              <div style={{ width: '30px', height: '30px', background: '#f59e0b', borderRadius: '4px', display: 'flex', justifyContent: 'center', alignItems: 'center', fontWeight: 'bold', fontSize: '1.2rem', color: '#fff' }}>G</div>
+              <div style={{ width: '30px', height: '30px', background: 'var(--primary)', borderRadius: '4px', display: 'flex', justifyContent: 'center', alignItems: 'center', fontWeight: 'bold', fontSize: '1.2rem', color: '#fff' }}>G</div>
               <h2 style={{ fontSize: '1.5rem', fontWeight: 800, margin: 0, letterSpacing: '0.5px' }}>Glorious Family</h2>
             </div>
             <div style={{ marginTop: '0.5rem', fontSize: '0.85rem', color: 'rgba(255,255,255,0.9)', lineHeight: '1.5' }}>
@@ -305,6 +305,7 @@ export default function InvoicePage() {
         {/* Bottom Bar */}
         <div style={{ background: '#f8fafc', padding: '1rem 2rem', borderTop: '1px solid #e2e8f0', display: 'flex', justifyContent: 'space-between', fontSize: '0.8rem', color: '#000', marginTop: '3rem' }}>
           <div>Thank you for using Glorious Family.</div>
+          <div>Developed by Iqbal Hossen &copy; 2026</div>
         </div>
 
       </div>
