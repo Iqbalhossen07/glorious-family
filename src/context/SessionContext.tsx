@@ -10,7 +10,7 @@ interface SessionContextProps {
   isLoading: boolean
   changeSession: (sessionId: string) => void
   clearSession: () => void
-  reloadSessions: () => Promise<void>
+  reloadSessions: (forceActive?: boolean) => Promise<void>
 }
 
 const SessionContext = createContext<SessionContextProps | undefined>(undefined)
@@ -59,8 +59,22 @@ export function SessionProvider({ children }: { children: ReactNode }) {
     setSelectedSession(currentActiveSession)
   }
 
-  const reloadSessions = async () => {
-    await loadSessions()
+  const reloadSessions = async (forceActive = false) => {
+    const allSessions = await SessionService.getAllSessions()
+    setSessions(allSessions)
+    
+    const active = allSessions.find(s => s.status === 'open') || allSessions[0] || null
+    setCurrentActiveSession(active)
+
+    if (forceActive) {
+      setSelectedSession(active)
+    } else {
+      setSelectedSession((prev: any) => {
+        if (!prev) return active
+        const exists = allSessions.find(s => s.id === prev.id)
+        return exists ? exists : active
+      })
+    }
   }
 
   return (

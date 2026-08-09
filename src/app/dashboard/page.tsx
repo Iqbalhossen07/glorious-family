@@ -16,7 +16,7 @@ import Swal from 'sweetalert2'
 
 export default function DashboardPage() {
   const router = useRouter()
-  const { selectedSession: session, isLoading: isSessionLoading, reloadSessions } = useSessionContext()
+  const { selectedSession: session, sessions, isLoading: isSessionLoading, reloadSessions } = useSessionContext()
   const [user, setUser] = useState<any>(null)
   const [members, setMembers] = useState<any[]>([])
   const [loading, setLoading] = useState(true)
@@ -120,14 +120,35 @@ export default function DashboardPage() {
   const handleCreateSession = async () => {
     if (!user) return
     const monthNames = ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"];
-    const d = new Date();
-    const currentMonthIndex = d.getMonth();
-    const currentYear = d.getFullYear();
+    let startMonthIndex = 0;
+    let targetYear = new Date().getFullYear();
+
+    if (sessions && sessions.length > 0) {
+      // Assuming sessions are sorted by start_date DESC (newest first)
+      const latestSession = sessions[0];
+      const [latestMonthName, latestYearStr] = latestSession.session_name.split(' ');
+      const latestMonthIndex = monthNames.indexOf(latestMonthName);
+      
+      if (latestMonthIndex !== -1) {
+        if (latestMonthIndex === 11) {
+          // December -> Start from January of next year
+          startMonthIndex = 0;
+          targetYear = parseInt(latestYearStr) + 1;
+        } else {
+          // Start from next month of the same year
+          startMonthIndex = latestMonthIndex + 1;
+          targetYear = parseInt(latestYearStr);
+        }
+      }
+    } else {
+      startMonthIndex = 0;
+      targetYear = new Date().getFullYear();
+    }
     
     const options: { [key: string]: string } = {};
-    for (let i = currentMonthIndex; i <= 11; i++) {
+    for (let i = startMonthIndex; i <= 11; i++) {
       const mName = monthNames[i];
-      const label = `${mName} ${currentYear}`;
+      const label = `${mName} ${targetYear}`;
       options[label] = label;
     }
 
@@ -147,7 +168,7 @@ export default function DashboardPage() {
       try {
         Swal.showLoading()
         await SessionService.createSession(sessionName, user.id)
-        await reloadSessions()
+        await reloadSessions(true)
         Swal.fire('Success', 'New session started!', 'success')
       } catch (error: any) {
         Swal.fire('Error', error.message, 'error')
