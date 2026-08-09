@@ -186,7 +186,7 @@ export default function MembersPage() {
 
       <div className="members-grid">
         {members.map((member) => (
-          <div key={member.id} className="minimal-card" style={{ position: 'relative', display: 'flex', alignItems: 'center', gap: '1rem', padding: '1.5rem' }}>
+          <div key={member.id} className="minimal-card" style={{ position: 'relative', display: 'flex', flexWrap: 'wrap', alignItems: 'center', gap: '1rem' }}>
             
             <div style={{
               width: '45px',

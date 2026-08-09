@@ -66,13 +66,30 @@ export default function SettlementsPage() {
         FixedExpenseService.getFixedExpenseHistory(sessionId)
       ])
 
+      // Determine relevant members (Active OR has activity)
+      const relevantMembers = membersData.map(member => {
+         const memberMeals = mealsData.filter(m => m.user_id === member.id).reduce((sum, m) => sum + Number(m.meal_count), 0)
+         const memberDeposits = depositsData.filter(d => d.user_id === member.id).reduce((sum, d) => sum + Number(d.amount), 0)
+         const memberBazar = bazarData.filter(b => b.user_id === member.id).reduce((sum, b) => sum + Number(b.amount), 0)
+         const memberPaidFixed = fixedData.filter(f => f.user_id === member.id).reduce((sum, f) => sum + Number(f.amount), 0)
+         
+         const hasActivity = memberMeals > 0 || memberDeposits !== 0 || memberBazar > 0 || memberPaidFixed > 0
+         
+         return {
+           ...member,
+           hasActivity,
+           totalMeals: memberMeals,
+           totalPaid: memberDeposits + memberBazar + memberPaidFixed
+         }
+      }).filter(m => m.status === 'active' || m.hasActivity)
+
       // Calculate totals
       const tMeals = mealsData.reduce((sum, m) => sum + Number(m.meal_count), 0)
       const tBazar = bazarData.reduce((sum, b) => sum + Number(b.amount), 0)
       const tFixed = fixedData.reduce((sum, f) => sum + Number(f.amount), 0)
       
       const mRate = tMeals > 0 ? (tBazar / tMeals) : 0
-      const activeMembersCount = membersData.length
+      const activeMembersCount = relevantMembers.length
       const fixedCostPerMember = activeMembersCount > 0 ? (tFixed / activeMembersCount) : 0
 
       setMessStats({
@@ -83,18 +100,12 @@ export default function SettlementsPage() {
       })
 
       const mStats: any = {}
-      membersData.forEach(member => {
-         const memberMeals = mealsData.filter(m => m.user_id === member.id).reduce((sum, m) => sum + Number(m.meal_count), 0)
-         const memberDeposits = depositsData.filter(d => d.user_id === member.id).reduce((sum, d) => sum + Number(d.amount), 0)
-         const memberBazar = bazarData.filter(b => b.user_id === member.id).reduce((sum, b) => sum + Number(b.amount), 0)
-         const memberPaidFixed = fixedData.filter(f => f.user_id === member.id).reduce((sum, f) => sum + Number(f.amount), 0)
-         
-         const totalPaid = memberDeposits + memberBazar + memberPaidFixed
-         const totalExpense = (memberMeals * mRate) + fixedCostPerMember
+      relevantMembers.forEach(member => {
+         const totalExpense = (member.totalMeals * mRate) + fixedCostPerMember
          
          mStats[member.id] = {
            totalExpense,
-           totalPaid
+           totalPaid: member.totalPaid
          }
       })
       setMemberStats(mStats)

@@ -38,15 +38,21 @@ export default function EditMealPage() {
             MemberService.getAllMembers(),
             MealService.getMealHistory(currentSession.id)
           ])
-          
-          setMembers(membersData)
 
           // Find meals for the specific date
           const dateMeals = mealsData.filter(m => m.date === dateParam)
 
+          // Filter members: active OR has existing non-zero meal for this date
+          const relevantMembers = membersData.filter(m => {
+            const hasMeal = dateMeals.some(dm => dm.user_id === m.id && (dm.breakfast > 0 || dm.lunch > 0 || dm.dinner > 0))
+            return m.status === 'active' || hasMeal
+          })
+          
+          setMembers(relevantMembers)
+
           // Initialize meal data
           const initialMeals: MealState = {}
-          membersData.forEach((m) => {
+          relevantMembers.forEach((m) => {
             const userMeal = dateMeals.find(dm => dm.user_id === m.id)
             initialMeals[m.id] = { 
               breakfast: userMeal?.breakfast || 0, 

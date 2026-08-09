@@ -46,35 +46,43 @@ export default function SummaryPage() {
           const tMeals = mealsData.reduce((sum, m) => sum + Number(m.meal_count), 0)
           const tBazar = bazarData.reduce((sum, b) => sum + Number(b.amount), 0)
           const tFixed = fixedData.reduce((sum, f) => sum + Number(f.amount), 0)
-          
           const mRate = tMeals > 0 ? (tBazar / tMeals) : 0
-          const activeMembersCount = membersData.length
-          const fixedCostPerMember = activeMembersCount > 0 ? (tFixed / activeMembersCount) : 0
 
-          setMealRate(mRate)
-          setSharedExpense(fixedCostPerMember)
-
-          // Calculate member specific stats
-          const stats = membersData.map(member => {
+          // Determine relevant members (Active OR has activity)
+          const relevantMembers = membersData.map(member => {
              const memberMeals = mealsData.filter(m => m.user_id === member.id).reduce((sum, m) => sum + Number(m.meal_count), 0)
              const memberDeposits = depositsData.filter(d => d.user_id === member.id).reduce((sum, d) => sum + Number(d.amount), 0)
              const memberBazar = bazarData.filter(b => b.user_id === member.id).reduce((sum, b) => sum + Number(b.amount), 0)
              const memberPaidFixed = fixedData.filter(f => f.user_id === member.id).reduce((sum, f) => sum + Number(f.amount), 0)
              
-             const totalGiven = memberDeposits + memberBazar + memberPaidFixed
-             
-             const mealCost = memberMeals * mRate
-             const totalCost = mealCost + fixedCostPerMember
-             
-             const balance = totalGiven - totalCost
+             // Past balances are carried over as deposits, so they will be caught by memberDeposits > 0
+             // (or < 0 if negative). If it's 0 and no other activity, hasActivity is false.
+             const hasActivity = memberMeals > 0 || memberDeposits !== 0 || memberBazar > 0 || memberPaidFixed > 0
              
              return {
                ...member,
+               hasActivity,
                totalMeals: memberMeals,
                totalDeposit: memberDeposits,
                totalBazarPaid: memberBazar,
                totalPaidFixed: memberPaidFixed,
-               totalGiven: totalGiven,
+               totalGiven: memberDeposits + memberBazar + memberPaidFixed
+             }
+          }).filter(m => m.status === 'active' || m.hasActivity)
+
+          const activeMembersCount = relevantMembers.length
+          const fixedCostPerMember = activeMembersCount > 0 ? (tFixed / activeMembersCount) : 0
+
+          setMealRate(mRate)
+          setSharedExpense(fixedCostPerMember)
+
+          const stats = relevantMembers.map(member => {
+             const mealCost = member.totalMeals * mRate
+             const totalCost = mealCost + fixedCostPerMember
+             const balance = member.totalGiven - totalCost
+             
+             return {
+               ...member,
                mealCost: mealCost,
                totalCost: totalCost,
                balance: balance

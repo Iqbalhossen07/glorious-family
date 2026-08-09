@@ -33,11 +33,12 @@ export default function MealsPage() {
 
         if (currentSession) {
           const membersData = await MemberService.getAllMembers()
-          setMembers(membersData)
+          const activeMembers = membersData.filter(m => m.status === 'active')
+          setMembers(activeMembers)
 
           // Initialize meal data with 0
           const initialMeals: MealState = {}
-          membersData.forEach((m) => {
+          activeMembers.forEach((m) => {
             initialMeals[m.id] = { breakfast: 0, lunch: 0, dinner: 0 }
           })
           setMealData(initialMeals)
