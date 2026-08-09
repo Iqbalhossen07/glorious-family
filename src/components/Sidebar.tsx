@@ -94,21 +94,7 @@ export default function Sidebar() {
         })}
       </nav>
 
-      <button onClick={handleLogout} style={{
-        display: 'flex', alignItems: 'center', gap: '1rem',
-        padding: '1rem 1.2rem',
-        background: '#fff',
-        border: '1px solid rgba(239, 68, 68, 0.2)',
-        boxShadow: '0 4px 12px rgba(239, 68, 68, 0.1)',
-        borderRadius: '12px',
-        color: '#ef4444',
-        cursor: 'pointer',
-        fontSize: '1rem',
-        fontWeight: 700,
-        textAlign: 'left',
-        marginTop: '1.5rem',
-        transition: 'all 0.2s ease'
-      }}>
+      <button onClick={handleLogout} className="logout-btn">
         <LogOut size={20} />
         Logout
       </button>
