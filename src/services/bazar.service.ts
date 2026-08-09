@@ -24,6 +24,29 @@ export const BazarService = {
   },
 
   async updateBazar(id: string, date: string, userId: string, itemName: string, amount: number) {
+    const { data: userData } = await supabase.auth.getUser()
+    const { data: userDetails } = await supabase.from('users').select('name').eq('id', userData?.user?.id).maybeSingle()
+    const editorName = userDetails?.name || 'Unknown'
+
+    const { data: existing } = await supabase.from('bazar_expenses').select('*').eq('id', id).single()
+    if (!existing) throw new Error("Item not found")
+
+    let history = existing.edit_history || []
+    
+    const changes = []
+    if (existing.amount !== amount) changes.push(`Amount: ${existing.amount} -> ${amount}`)
+    if (existing.item_name !== itemName) changes.push(`Item: ${existing.item_name} -> ${itemName}`)
+    if (existing.date !== date) changes.push(`Date: ${existing.date} -> ${date}`)
+    if (existing.user_id !== userId) changes.push(`Shopper changed`)
+
+    if (changes.length > 0) {
+      history.push({
+        edited_at: new Date().toISOString(),
+        edited_by: editorName,
+        changes: changes.join(', ')
+      })
+    }
+
     const { error } = await supabase
       .from('bazar_expenses')
       .update({
@@ -31,6 +54,7 @@ export const BazarService = {
         user_id: userId,
         item_name: itemName,
         amount: amount,
+        edit_history: history,
         updated_at: new Date().toISOString()
       })
       .eq('id', id)

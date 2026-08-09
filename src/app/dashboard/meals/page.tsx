@@ -99,6 +99,13 @@ export default function MealHistoryPage() {
   }
 
   const handleViewDate = (day: any) => {
+    const formatTimeBD = (dateStr: string) => {
+      return new Date(dateStr).toLocaleString('en-US', { 
+        timeZone: 'Asia/Dhaka', day: '2-digit', month: 'short', year: 'numeric',
+        hour: '2-digit', minute: '2-digit', hour12: true
+      })
+    }
+    
     let addedBy = 'System'
     if (day.meals.length > 0 && day.meals[0].created_by) {
       const member = members.find(m => m.id === day.meals[0].created_by)
@@ -123,6 +130,44 @@ export default function MealHistoryPage() {
       `
     }).join('');
 
+    let allEdits: any[] = []
+    day.meals.forEach((m: any) => {
+      if (m.edit_history && m.edit_history.length > 0) {
+        const user = members.find((x: any) => x.id === m.user_id)
+        const name = user ? user.name : 'Unknown'
+        m.edit_history.forEach((edit: any) => {
+           allEdits.push({
+             ...edit,
+             member_name: name
+           })
+        })
+      }
+    })
+    
+    // Sort by edited_at ascending
+    allEdits.sort((a, b) => new Date(a.edited_at).getTime() - new Date(b.edited_at).getTime())
+
+    let editHistoryHtml = ''
+    if (allEdits.length > 0) {
+      editHistoryHtml += `<div style="margin-top: 1.5rem; border-top: 1px solid rgba(0,0,0,0.1); padding-top: 1rem;">
+        <strong style="font-size: 0.85rem; color: var(--primary); display: block; margin-bottom: 0.8rem;">EDIT HISTORY</strong>`
+      
+      allEdits.forEach((edit: any, index: number) => {
+        const suffix = index === 0 ? 'st' : index === 1 ? 'nd' : index === 2 ? 'rd' : 'th'
+        editHistoryHtml += `
+          <div style="background: rgba(0,0,0,0.02); padding: 0.8rem; border-radius: 6px; margin-bottom: 0.5rem; font-size: 0.8rem;">
+            <div style="display: flex; justify-content: space-between; margin-bottom: 0.3rem;">
+              <strong style="color: var(--text-main);">${index + 1}${suffix} Edit (${edit.member_name})</strong>
+              <span style="color: var(--text-muted); font-size: 0.75rem;">${formatTimeBD(edit.edited_at)}</span>
+            </div>
+            <div style="color: var(--text-muted); margin-bottom: 0.3rem;">By: <strong>${edit.edited_by}</strong></div>
+            <div style="color: var(--text-main); font-style: italic;">${edit.changes}</div>
+          </div>
+        `
+      })
+      editHistoryHtml += `</div>`
+    }
+
     Swal.fire({
       title: '<h3 style="margin:0; font-size: 1.5rem; color: var(--primary); font-family: Merriweather, serif;">Meal Details</h3>',
       html: `
@@ -143,6 +188,7 @@ export default function MealHistoryPage() {
               <span style="font-size: 0.8rem; font-weight: 700; color: var(--text-main);">${addedBy}</span>
             </div>
           </div>
+          ${editHistoryHtml}
         </div>
       `,
       showConfirmButton: true,

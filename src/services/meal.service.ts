@@ -21,11 +21,15 @@ export const MealService = {
   },
 
   async saveMealsForDate(sessionId: string, date: string, mealsData: any[]) {
+    const { data: userData } = await supabase.auth.getUser()
+    const { data: userDetails } = await supabase.from('users').select('name').eq('id', userData?.user?.id).maybeSingle()
+    const editorName = userDetails?.name || 'Unknown'
+
     // mealsData: [{ user_id, meal_count, breakfast, lunch, dinner, created_by }]
     for (const meal of mealsData) {
       const { data } = await supabase
         .from('daily_meals')
-        .select('id, created_at')
+        .select('id, created_at, edit_history, meal_count, breakfast, lunch, dinner')
         .eq('session_id', sessionId)
         .eq('user_id', meal.user_id)
         .eq('date', date)
@@ -37,13 +41,28 @@ export const MealService = {
         }
       } else {
         if (data) {
-           await supabase.from('daily_meals').update({
-             meal_count: meal.meal_count,
-             breakfast: meal.breakfast,
-             lunch: meal.lunch,
-             dinner: meal.dinner,
-             updated_at: new Date().toISOString()
-           }).eq('id', data.id)
+           const changes = []
+           if (data.breakfast !== meal.breakfast) changes.push(`Breakfast: ${data.breakfast}->${meal.breakfast}`)
+           if (data.lunch !== meal.lunch) changes.push(`Lunch: ${data.lunch}->${meal.lunch}`)
+           if (data.dinner !== meal.dinner) changes.push(`Dinner: ${data.dinner}->${meal.dinner}`)
+           
+           let history = data.edit_history || []
+           if (changes.length > 0) {
+             history.push({
+               edited_at: new Date().toISOString(),
+               edited_by: editorName,
+               changes: changes.join(', ')
+             })
+             
+             await supabase.from('daily_meals').update({
+               meal_count: meal.meal_count,
+               breakfast: meal.breakfast,
+               lunch: meal.lunch,
+               dinner: meal.dinner,
+               edit_history: history,
+               updated_at: new Date().toISOString()
+             }).eq('id', data.id)
+           }
         } else {
            await supabase.from('daily_meals').insert({
              session_id: sessionId,
