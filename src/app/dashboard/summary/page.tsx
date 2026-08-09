@@ -131,6 +131,7 @@ export default function SummaryPage() {
         })
 
         await SessionService.closeSession(session.id, settlements)
+        await reloadSessions()
         
         await Swal.fire('Success', 'Month closed successfully. Balances have been saved to Settlements.', 'success')
         router.push('/dashboard/settlements')
