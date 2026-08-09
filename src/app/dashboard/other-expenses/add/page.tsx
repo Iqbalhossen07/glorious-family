@@ -47,7 +47,12 @@ export default function AddFixedExpensePage() {
     e.preventDefault()
     if (!session || !user) return
 
-    if (!date || !itemName || !amount || Number(amount) <= 0) {
+    if (Number(amount) < 0) {
+      Swal.fire('Error', 'Amount cannot be negative.', 'error')
+      return
+    }
+
+    if (!date || !itemName || !amount || Number(amount) === 0) {
       Swal.fire('Error', 'Please fill all fields correctly.', 'error')
       return
     }

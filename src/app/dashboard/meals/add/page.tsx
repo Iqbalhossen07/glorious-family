@@ -36,10 +36,10 @@ export default function MealsPage() {
           const activeMembers = membersData.filter(m => m.status === 'active')
           setMembers(activeMembers)
 
-          // Initialize meal data with 0
+          // Initialize meal data with defaults
           const initialMeals: MealState = {}
           activeMembers.forEach((m) => {
-            initialMeals[m.id] = { breakfast: 0, lunch: 0, dinner: 0 }
+            initialMeals[m.id] = { breakfast: 0.5, lunch: 1, dinner: 1 }
           })
           setMealData(initialMeals)
         }
@@ -53,7 +53,16 @@ export default function MealsPage() {
   }, [])
 
   const handleInputChange = (userId: string, field: 'breakfast' | 'lunch' | 'dinner', value: string) => {
-    const numValue = value === '' ? 0 : parseFloat(value)
+    let numValue = value === '' ? 0 : parseFloat(value)
+    if (numValue < 0) {
+       Swal.fire({
+         icon: 'error',
+         title: 'Invalid Input',
+         text: 'Values cannot be negative.'
+       })
+       return
+    }
+    
     setMealData(prev => ({
       ...prev,
       [userId]: {

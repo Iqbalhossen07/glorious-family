@@ -72,7 +72,16 @@ export default function EditMealPage() {
   }, [dateParam])
 
   const handleInputChange = (userId: string, field: 'breakfast' | 'lunch' | 'dinner', value: string) => {
-    const numValue = value === '' ? 0 : parseFloat(value)
+    let numValue = value === '' ? 0 : parseFloat(value)
+    if (numValue < 0) {
+       Swal.fire({
+         icon: 'error',
+         title: 'Invalid Input',
+         text: 'Values cannot be negative.'
+       })
+       return
+    }
+
     setMealData(prev => ({
       ...prev,
       [userId]: {

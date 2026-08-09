@@ -59,7 +59,12 @@ export default function EditDepositPage() {
     e.preventDefault()
     if (!session || !user) return
 
-    if (!date || !userId || !amount || Number(amount) <= 0) {
+    if (Number(amount) < 0) {
+      Swal.fire('Error', 'Amount cannot be negative.', 'error')
+      return
+    }
+
+    if (!date || !userId || !amount || Number(amount) === 0) {
       Swal.fire('Error', 'Please fill all fields correctly.', 'error')
       return
     }
