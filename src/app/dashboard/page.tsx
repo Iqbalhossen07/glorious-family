@@ -457,10 +457,10 @@ export default function DashboardPage() {
         <button onClick={() => router.push('/dashboard/meals/add')} className="btn btn-primary quick-action-btn" style={{ padding: '0.8rem 1.5rem' }}>
           <PlusCircle size={16} style={{ marginRight: '0.3rem' }} /> Add Meal
         </button>
-        <button onClick={() => router.push('/dashboard/bazar/add')} className="btn btn-outline quick-action-btn" style={{ padding: '0.8rem 1.5rem', background: 'rgba(255, 255, 255, 0.3)', backdropFilter: 'blur(16px)', WebkitBackdropFilter: 'blur(16px)', border: '1px solid rgba(255, 255, 255, 0.6)' }}>
+        <button onClick={() => router.push('/dashboard/bazar/add')} className="btn btn-outline quick-action-btn" style={{ padding: '0.8rem 1.5rem', background: 'rgba(255, 255, 255, 0.3)', backdropFilter: 'blur(16px)', WebkitBackdropFilter: 'blur(16px)', border: '2px solid #ffffff', fontWeight: 600 }}>
           <ShoppingCart size={16} style={{ marginRight: '0.3rem' }} /> Add Bazar
         </button>
-        <button onClick={() => router.push('/dashboard/other-expenses/add')} className="btn btn-outline quick-action-btn" style={{ padding: '0.8rem 1.5rem', background: 'rgba(255, 255, 255, 0.3)', backdropFilter: 'blur(16px)', WebkitBackdropFilter: 'blur(16px)', border: '1px solid rgba(255, 255, 255, 0.6)' }}>
+        <button onClick={() => router.push('/dashboard/other-expenses/add')} className="btn btn-outline quick-action-btn" style={{ padding: '0.8rem 1.5rem', background: 'rgba(255, 255, 255, 0.3)', backdropFilter: 'blur(16px)', WebkitBackdropFilter: 'blur(16px)', border: '2px solid #ffffff', fontWeight: 600 }}>
           <FileText size={16} style={{ marginRight: '0.3rem' }} /> Add Other Exp.
         </button>
       </div>

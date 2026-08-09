@@ -18,7 +18,7 @@ export default function Logo({ color = '#0CAD79', white = false, size = 'md', st
         <Users size={iconSize} color={iconCol} strokeWidth={2.5} />
       </div>
       <span style={{ fontSize: textSize, fontWeight: 700, color: textColor, letterSpacing: '-0.02em', fontFamily: 'Merriweather, serif' }}>
-        GloriousFamily
+        Glorious Family
       </span>
     </div>
   )
