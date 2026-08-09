@@ -35,16 +35,16 @@ export default function BottomNav() {
 
   // All nav items with their unique colors
   const allItems = [
-    { name: 'Home', path: '/dashboard', icon: <Home size={18} />, color: '#3b82f6' },
-    { name: 'Members', path: '/dashboard/members', icon: <Users size={18} />, color: '#f43f5e' },
-    { name: 'Bazar', path: '/dashboard/bazar', icon: <ShoppingCart size={18} />, color: '#10b981' },
-    { name: 'Meals', path: '/dashboard/meals', icon: <Utensils size={18} />, color: '#f59e0b' },
-    { name: 'Deposits', path: '/dashboard/deposits', icon: <Wallet size={18} />, color: '#0ea5e9' },
-    { name: 'Others', path: '/dashboard/other-expenses', icon: <FileText size={18} />, color: '#8b5cf6' },
-    { name: 'Info', path: '/dashboard/mess-info', icon: <ClipboardList size={18} />, color: '#ec4899' },
-    { name: 'Summary', path: '/dashboard/summary', icon: <PieChart size={18} />, color: '#14b8a6' },
-    { name: 'Activity', path: '/dashboard/activity-log', icon: <Activity size={18} />, color: '#f97316' },
-    { name: 'Settings', path: '/dashboard/settings', icon: <Settings size={18} />, color: '#64748b' },
+    { name: 'Home', path: '/dashboard', icon: <Home size={16} />, color: '#3b82f6' },
+    { name: 'Members', path: '/dashboard/members', icon: <Users size={16} />, color: '#f43f5e' },
+    { name: 'Bazar', path: '/dashboard/bazar', icon: <ShoppingCart size={16} />, color: '#10b981' },
+    { name: 'Meals', path: '/dashboard/meals', icon: <Utensils size={16} />, color: '#f59e0b' },
+    { name: 'Deposits', path: '/dashboard/deposits', icon: <Wallet size={16} />, color: '#0ea5e9' },
+    { name: 'Others', path: '/dashboard/other-expenses', icon: <FileText size={16} />, color: '#8b5cf6' },
+    { name: 'Info', path: '/dashboard/mess-info', icon: <ClipboardList size={16} />, color: '#ec4899' },
+    { name: 'Summary', path: '/dashboard/summary', icon: <PieChart size={16} />, color: '#14b8a6' },
+    { name: 'Activity', path: '/dashboard/activity-log', icon: <Activity size={16} />, color: '#f97316' },
+    { name: 'Settings', path: '/dashboard/settings', icon: <Settings size={16} />, color: '#64748b' },
   ]
 
   // Only these 5 appear on the sticky bottom bar
@@ -65,8 +65,9 @@ export default function BottomNav() {
         display: 'flex',
         justifyContent: 'space-between',
         alignItems: 'center',
-        padding: '0.5rem 0.25rem',
-        paddingBottom: 'env(safe-area-inset-bottom, 0.5rem)',
+        gap: '0.8rem',
+        padding: '0.3rem 0.5rem',
+        paddingBottom: 'calc(env(safe-area-inset-bottom, 0.3rem) + 0.2rem)',
         zIndex: 100,
         boxShadow: '0 -4px 20px rgba(0,0,0,0.04)'
       }}>
@@ -74,18 +75,16 @@ export default function BottomNav() {
           const isActive = item.path === '/dashboard' ? pathname === '/dashboard' : pathname.startsWith(item.path)
           return (
             <Link key={item.path} href={item.path} style={{
-              display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '0.2rem',
-              padding: '0.4rem 0.2rem',
-              borderRadius: '10px',
+              display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '0.1rem',
+              padding: '0.3rem 0.1rem',
+              borderRadius: '8px',
               textDecoration: 'none',
-              background: isActive ? item.color : `${item.color}15`,
+              background: isActive ? item.color : `${item.color}10`,
               border: '1px solid transparent',
               boxShadow: isActive ? `0 4px 12px ${item.color}40` : 'none',
               color: isActive ? '#fff' : item.color,
               fontWeight: isActive ? 700 : 500,
-              minWidth: '50px',
               flex: 1,
-              margin: '0 0.15rem',
               transition: 'all 0.2s ease'
             }}>
               <div style={{ color: isActive ? '#fff' : item.color }}>
@@ -98,23 +97,19 @@ export default function BottomNav() {
         
         {/* Hamburger Menu Button */}
         <button onClick={() => setMenuOpen(true)} style={{
-          display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '0.2rem',
-          padding: '0.4rem 0.2rem',
-          borderRadius: '10px',
+          display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '0.1rem',
+          padding: '0.3rem 0.1rem',
+          borderRadius: '8px',
           background: menuOpen ? 'rgba(12, 173, 121, 0.15)' : 'rgba(255, 255, 255, 0.8)',
           border: '1px solid rgba(0,0,0,0.02)',
           boxShadow: menuOpen ? '0 4px 12px rgba(12, 173, 121, 0.25)' : '0 2px 6px rgba(148, 163, 184, 0.15)',
           color: menuOpen ? 'var(--primary)' : '#64748b',
           fontWeight: menuOpen ? 700 : 500,
-          minWidth: '50px',
           flex: 1,
-          margin: '0 0.15rem',
           cursor: 'pointer',
           transition: 'all 0.2s ease'
         }}>
-          <div style={{ color: menuOpen ? 'var(--primary)' : '#94a3b8' }}>
-            <Menu size={18} />
-          </div>
+          <Menu size={16} />
           <span style={{ fontSize: '0.6rem' }}>Menu</span>
         </button>
       </nav>
