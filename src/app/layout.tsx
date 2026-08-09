@@ -3,8 +3,12 @@ import type { Metadata } from 'next'
 
 export const metadata: Metadata = {
   title: 'Glorious Family Mess',
-  description: 'Premium Mess Management Application',
+  description: 'Manage your mess, beautifully.',
   manifest: '/manifest.json',
+}
+
+export const viewport = {
+  themeColor: '#10b981',
 }
 
 export default function RootLayout({

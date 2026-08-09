@@ -1,18 +1,80 @@
 'use client'
 import { useState } from 'react'
 import Link from 'next/link'
+import { useRouter } from 'next/navigation'
 import { Eye, EyeOff, ArrowLeft } from 'lucide-react'
 import Logo from '@/components/Logo'
+import { AuthService } from '@/services/auth.service'
+import Swal from 'sweetalert2'
+import withReactContent from 'sweetalert2-react-content'
+
+const MySwal = withReactContent(Swal)
 
 export default function RegisterPage() {
+  const router = useRouter()
   const [name, setName] = useState('')
-  const [phone, setPhone] = useState('')
+  const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
   const [showPassword, setShowPassword] = useState(false)
+  const [loading, setLoading] = useState(false)
 
   const handleRegister = async (e: React.FormEvent) => {
     e.preventDefault()
-    alert('Register feature coming next!')
+    
+    if (password.length < 6) {
+      return MySwal.fire({
+        icon: 'warning',
+        title: 'Oops...',
+        text: 'Password must be at least 6 characters',
+        confirmButtonColor: 'var(--primary)'
+      })
+    }
+
+    setLoading(true)
+    try {
+      await AuthService.register(name, email, password)
+      
+      await MySwal.fire({
+        icon: 'success',
+        title: 'Welcome!',
+        text: 'Account created successfully. Please login.',
+        confirmButtonColor: 'var(--primary)',
+        timer: 3000
+      })
+      
+      router.push('/login')
+    } catch (error: any) {
+      const errorMsg = (error?.message || error?.toString() || '').toLowerCase()
+      
+      if (errorMsg.includes('already registered') || errorMsg.includes('unique constraint')) {
+        MySwal.fire({
+          icon: 'error',
+          title: 'Already Exists',
+          text: 'This email is already registered. Please login instead.',
+          confirmButtonColor: 'var(--primary)',
+          showCancelButton: true,
+          confirmButtonText: 'Go to Login',
+          cancelButtonText: 'Try Again'
+        }).then((result) => {
+          if (result.isConfirmed) {
+            router.push('/login')
+          }
+        })
+      } else {
+        MySwal.fire({
+          icon: 'error',
+          title: 'Registration Failed',
+          text: error?.message || 'Something went wrong',
+          confirmButtonColor: 'var(--primary)'
+        })
+        
+        if (typeof window !== 'undefined' && window.innerWidth < 768) {
+          alert('Error: ' + (error?.message || 'Something went wrong'))
+        }
+      }
+    } finally {
+      setLoading(false)
+    }
   }
 
   return (
@@ -47,10 +109,10 @@ export default function RegisterPage() {
           </div>
 
           <div className="input-group">
-            <label className="input-label">Phone Number</label>
+            <label className="input-label">Email Address</label>
             <input 
-              type="tel" className="input-field" placeholder="01700000000" 
-              value={phone} onChange={(e) => setPhone(e.target.value)} required 
+              type="email" className="input-field" placeholder="your@email.com" 
+              value={email} onChange={(e) => setEmail(e.target.value)} required 
             />
           </div>
           
@@ -73,8 +135,8 @@ export default function RegisterPage() {
             </div>
           </div>
           
-          <button type="submit" className="btn btn-primary" style={{ width: '100%' }}>
-            Register
+          <button type="submit" className="btn btn-primary" style={{ width: '100%' }} disabled={loading}>
+            {loading ? 'Registering...' : 'Register'}
           </button>
         </form>
 

@@ -1,17 +1,50 @@
 'use client'
 import { useState } from 'react'
 import Link from 'next/link'
+import { useRouter } from 'next/navigation'
 import { Eye, EyeOff, ArrowLeft } from 'lucide-react'
 import Logo from '@/components/Logo'
+import { AuthService } from '@/services/auth.service'
+import Swal from 'sweetalert2'
+import withReactContent from 'sweetalert2-react-content'
+
+const MySwal = withReactContent(Swal)
 
 export default function LoginPage() {
-  const [phone, setPhone] = useState('')
+  const router = useRouter()
+  const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
   const [showPassword, setShowPassword] = useState(false)
+  const [loading, setLoading] = useState(false)
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault()
-    alert('Login feature coming next!')
+    setLoading(true)
+    try {
+      await AuthService.login(email, password)
+      
+      MySwal.fire({
+        icon: 'success',
+        title: 'Welcome Back!',
+        text: 'Login successful.',
+        toast: true,
+        position: 'top-end',
+        showConfirmButton: false,
+        timer: 2000,
+        timerProgressBar: true
+      })
+      
+      router.push('/dashboard')
+    } catch (error: any) {
+      MySwal.fire({
+        icon: 'error',
+        title: 'Login Failed',
+        text: 'Invalid email or password',
+        confirmButtonColor: 'var(--primary)'
+      })
+    } finally {
+      setLoading(false)
+    }
   }
 
   return (
@@ -38,10 +71,10 @@ export default function LoginPage() {
         
         <form onSubmit={handleLogin}>
           <div className="input-group">
-            <label className="input-label">Phone Number</label>
+            <label className="input-label">Email Address</label>
             <input 
-              type="tel" className="input-field" placeholder="01700000000" 
-              value={phone} onChange={(e) => setPhone(e.target.value)} required 
+              type="email" className="input-field" placeholder="your@email.com" 
+              value={email} onChange={(e) => setEmail(e.target.value)} required 
             />
           </div>
           
@@ -64,16 +97,25 @@ export default function LoginPage() {
             </div>
           </div>
           
-          <button type="submit" className="btn btn-primary" style={{ width: '100%' }}>
-            Sign In
+          <button 
+            type="submit" 
+            className="btn btn-primary" 
+            style={{ width: '100%' }} 
+            disabled={loading}
+          >
+            {loading ? 'Signing In...' : 'Sign In'}
           </button>
-        </form>
 
-        <div style={{ marginTop: '2rem', textAlign: 'center' }}>
-          <Link href="/register" style={{ color: 'var(--text-muted)', textDecoration: 'none', fontSize: '0.95rem' }}>
-            Don't have an account? <span style={{ color: 'var(--primary)', fontWeight: 700 }}>Sign up</span>
-          </Link>
-        </div>
+          <div style={{ textAlign: 'center', marginTop: '1rem' }}>
+            <Link href="/forgot-password" style={{ color: 'var(--primary)', fontSize: '0.875rem', fontWeight: 600, textDecoration: 'none' }}>
+              Forgot Password?
+            </Link>
+          </div>
+          
+          <div style={{ textAlign: 'center', marginTop: '1rem', fontSize: '0.875rem', color: 'var(--text-muted)' }}>
+            Don't have an account? <Link href="/register" style={{ color: 'var(--primary)', fontWeight: 600, textDecoration: 'none' }}>Register</Link>
+          </div>
+        </form>
       </div>
     </main>
   )
