@@ -166,7 +166,7 @@ export default function InvoicePage() {
         <div className="invoice-header">
           <div className="header-left">
             <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-              <div style={{ width: '30px', height: '30px', background: 'var(--primary)', borderRadius: '4px', display: 'flex', justifyContent: 'center', alignItems: 'center', fontWeight: 'bold', fontSize: '1.2rem', color: '#fff' }}>G</div>
+             
               <h2 style={{ fontSize: '1.5rem', fontWeight: 800, margin: 0, letterSpacing: '0.5px' }}>Glorious Family</h2>
             </div>
             <div style={{ marginTop: '0.5rem', fontSize: '0.85rem', color: 'rgba(255,255,255,0.9)', lineHeight: '1.5' }}>
