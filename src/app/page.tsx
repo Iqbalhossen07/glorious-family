@@ -15,7 +15,7 @@ export default function WelcomePage() {
         WebkitBackdropFilter: 'blur(20px)',
         border: '1px solid rgba(255, 255, 255, 0.8)',
         boxShadow: '0 8px 32px rgba(148, 163, 184, 0.1)',
-        borderRadius: '24px',
+        borderRadius: 'var(--radius-md)',
         padding: '3.5rem 2rem'
       }}>
         
