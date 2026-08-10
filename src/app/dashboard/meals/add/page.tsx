@@ -36,6 +36,18 @@ export default function MealsPage() {
           const activeMembers = membersData.filter(m => m.status === 'active')
           setMembers(activeMembers)
 
+          // Fetch existing meals to auto-increment the date
+          const existingMeals = await MealService.getMealHistory(currentSession.id)
+          if (existingMeals && existingMeals.length > 0) {
+            const latestMealDate = existingMeals[0].date
+            const [yyyy, mm, dd] = latestMealDate.split('-')
+            const nextDate = new Date(Number(yyyy), Number(mm) - 1, Number(dd))
+            nextDate.setDate(nextDate.getDate() + 1)
+            
+            const nextDateStr = `${nextDate.getFullYear()}-${String(nextDate.getMonth() + 1).padStart(2, '0')}-${String(nextDate.getDate()).padStart(2, '0')}`
+            setDate(nextDateStr)
+          }
+
           // Initialize meal data with defaults
           const initialMeals: MealState = {}
           activeMembers.forEach((m) => {
