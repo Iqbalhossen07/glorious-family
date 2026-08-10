@@ -205,11 +205,16 @@ export default function MembersPage() {
               {member.name.charAt(0).toUpperCase()}
             </div>
             
-            <div style={{ flex: 1, overflow: 'hidden' }}>
-              <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '0.2rem' }}>
+            <div style={{ flex: 1, minWidth: '0' }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '0.2rem', flexWrap: 'wrap' }}>
                 <h3 style={{ fontSize: '1.1rem', fontWeight: 700, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
                   {member.name}
                 </h3>
+                {(member.role === 'manager' || member.role === 'admin') && (
+                  <span style={{ fontSize: '0.65rem', padding: '0.1rem 0.4rem', borderRadius: '4px', background: 'var(--primary)', color: '#fff', fontWeight: 700, display: 'flex', alignItems: 'center', gap: '0.2rem' }}>
+                    <Crown size={12} fill="currentColor" /> MANAGER
+                  </span>
+                )}
                 {member.status !== 'active' && (
                   <span style={{ fontSize: '0.65rem', padding: '0.1rem 0.4rem', borderRadius: '4px', background: '#fee2e2', color: '#ef4444', fontWeight: 600 }}>
                     INACTIVE
@@ -221,33 +226,6 @@ export default function MembersPage() {
                 <span style={{ fontSize: '0.8rem', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{member.email}</span>
               </div>
             </div>
-
-            {(member.role === 'manager' || member.role === 'admin') && (
-              <div 
-                title="Manager" 
-                style={{ 
-                  position: 'absolute', 
-                  top: 0, 
-                  right: 0, 
-                  background: 'linear-gradient(135deg, #10b981, #059669)',
-                  color: 'white',
-                  padding: '0.3rem 0.75rem',
-                  fontSize: '0.65rem',
-                  fontWeight: 800,
-                  textTransform: 'uppercase',
-                  letterSpacing: '0.5px',
-                  borderBottomLeftRadius: '8px',
-                  borderTopRightRadius: 'inherit',
-                  boxShadow: '-2px 2px 8px rgba(16, 185, 129, 0.25)',
-                  display: 'flex',
-                  alignItems: 'center',
-                  gap: '0.3rem'
-                }}
-              >
-                <Crown size={14} fill="currentColor" /> Manager
-              </div>
-            )}
-
             <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem', alignSelf: 'center', marginLeft: 'auto' }}>
               <button 
                 onClick={() => window.location.href = `/dashboard/members/${member.id}`}
