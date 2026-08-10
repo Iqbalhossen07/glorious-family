@@ -2,7 +2,7 @@ import { Users } from 'lucide-react'
 
 export default function Logo({ color = '#0CAD79', white = false, size = 'md', stacked = false }) {
   const iconSize = size === 'lg' ? 48 : size === 'md' ? 32 : 24;
-  const textSize = size === 'lg' ? '2.2rem' : size === 'md' ? '1.2rem' : '1rem';
+  const textSize = size === 'lg' ? 'clamp(1.3rem, 6vw, 2.2rem)' : size === 'md' ? '1.2rem' : '1rem';
   const textColor = white ? '#ffffff' : '#0f172a';
   const iconCol = white ? '#ffffff' : color;
 

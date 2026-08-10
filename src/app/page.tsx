@@ -24,9 +24,8 @@ export default function WelcomePage() {
         </div>
 
         {/* Minimal Headline */}
-        <h1 style={{ fontSize: 'clamp(2rem, 7vw, 3.2rem)', fontWeight: 800, letterSpacing: '-0.03em', lineHeight: 1.15, marginBottom: '1.5rem', color: 'var(--text-main)' }}>
-          Manage your mess, <br/>
-          <span style={{ color: 'var(--primary)' }}>beautifully.</span>
+        <h1 style={{ fontSize: 'clamp(2rem, 7vw, 3rem)', fontWeight: 800, letterSpacing: '-0.03em', lineHeight: 1.15, marginBottom: '1.5rem', color: 'var(--text-main)' }}>
+          Manage your mess, <span style={{ color: 'var(--primary)' }}>beautifully.</span>
         </h1>
 
         {/* Minimal Subtitle */}
