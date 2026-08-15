@@ -45,7 +45,7 @@ export async function GET(request: Request) {
     }
 
     // Fetch data from Supabase tables
-    const tables = ['users', 'mess_sessions', 'daily_meals', 'bazar_expenses', 'deposits', 'fixed_expenses'];
+    const tables = ['users', 'sessions', 'daily_meals', 'bazar_expenses', 'deposits', 'fixed_expenses'];
     
     // Instead of multiple files, we will create a combined JSON backup because it's safer and easier to restore.
     // Or we can send multiple CSV files. Let's send a single JSON file representing the entire database dump.
