@@ -31,9 +31,10 @@ export default function FixedExpenseHistoryPage() {
       ])
       
       setMembers(membersData)
-      setExpenseHistory(expenseData)
+      const filteredExpenses = expenseData.filter((e: any) => e.item_name !== 'Room Rent')
+      setExpenseHistory(filteredExpenses)
       
-      const total = expenseData.reduce((sum, item) => sum + Number(item.amount), 0)
+      const total = filteredExpenses.reduce((sum: any, item: any) => sum + Number(item.amount), 0)
       setGrandTotal(total)
     } catch (error) {
       console.error("Error loading fixed expense history:", error)

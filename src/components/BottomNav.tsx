@@ -2,7 +2,7 @@
 import { useState, useEffect } from 'react'
 import Link from 'next/link'
 import { usePathname, useRouter } from 'next/navigation'
-import { Home, LayoutDashboard, Utensils, ShoppingCart, Users, Settings, LogOut, Menu, X, Wallet, FileText, ClipboardList, Activity, PieChart } from 'lucide-react'
+import { Home, LayoutDashboard, Utensils, ShoppingCart, Users, Settings, LogOut, Menu, X, Wallet, FileText, ClipboardList, Activity, PieChart, Key } from 'lucide-react'
 import { AuthService } from '@/services/auth.service'
 import Logo from './Logo'
 import Swal from 'sweetalert2'
@@ -37,6 +37,7 @@ export default function BottomNav() {
   const allItems = [
     { name: 'Home', path: '/dashboard', icon: <Home size={16} />, color: '#3b82f6' },
     { name: 'Members', path: '/dashboard/members', icon: <Users size={16} />, color: '#f43f5e' },
+    { name: 'Room Rents', path: '/dashboard/room-rents', icon: <Key size={16} />, color: '#f59e0b' },
     { name: 'Bazar', path: '/dashboard/bazar', icon: <ShoppingCart size={16} />, color: '#10b981' },
     { name: 'Meals', path: '/dashboard/meals', icon: <Utensils size={16} />, color: '#f59e0b' },
     { name: 'Deposits', path: '/dashboard/deposits', icon: <Wallet size={16} />, color: '#0ea5e9' },

@@ -1,7 +1,7 @@
 'use client'
 import Link from 'next/link'
 import { usePathname, useRouter } from 'next/navigation'
-import { Home, Utensils, ShoppingCart, Settings, LogOut, Users, Wallet, FileText, ClipboardList, Activity, PieChart, Banknote } from 'lucide-react'
+import { Home, Utensils, ShoppingCart, Settings, LogOut, Users, Wallet, FileText, ClipboardList, Activity, PieChart, Banknote, Key } from 'lucide-react'
 import Logo from './Logo'
 import { AuthService } from '@/services/auth.service'
 import Swal from 'sweetalert2'
@@ -13,6 +13,7 @@ export default function Sidebar() {
   const navItems = [
     { name: 'Home', path: '/dashboard', icon: <Home size={18} />, color: '#3b82f6' },
     { name: 'Members', path: '/dashboard/members', icon: <Users size={18} />, color: '#f43f5e' },
+    { name: 'Room Rents', path: '/dashboard/room-rents', icon: <Key size={18} />, color: '#f59e0b' },
     { name: 'Bazar', path: '/dashboard/bazar', icon: <ShoppingCart size={18} />, color: '#10b981' },
     { name: 'Meals', path: '/dashboard/meals', icon: <Utensils size={18} />, color: '#f59e0b' },
     { name: 'Deposits', path: '/dashboard/deposits', icon: <Wallet size={18} />, color: '#0ea5e9' },
