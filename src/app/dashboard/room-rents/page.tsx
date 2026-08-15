@@ -47,12 +47,11 @@ export default function RoomRentsPage() {
             .select('*')
             .eq('session_id', currentSession.id)
             .eq('item_name', 'Room Rent')
-            .eq('type', 'member')
 
           const initialRents: RoomRentState = {}
           activeMembers.forEach((m) => {
             const memberRent = existingRents?.find(r => r.user_id === m.id)
-            initialRents[m.id] = memberRent ? Number(memberRent.amount) : 0
+            initialRents[m.id] = memberRent ? Number(memberRent.amount) : 1225
           })
           
           if (existingRents && existingRents.length > 0) {
@@ -93,12 +92,10 @@ export default function RoomRentsPage() {
     try {
       Swal.showLoading()
       
-      // Delete existing Room Rents for this session to replace them
       await supabase.from('fixed_expenses')
         .delete()
         .eq('session_id', session.id)
         .eq('item_name', 'Room Rent')
-        .eq('type', 'member')
 
       const rentsToInsert: any[] = []
 
@@ -111,7 +108,6 @@ export default function RoomRentsPage() {
             date: date,
             item_name: 'Room Rent',
             amount: amount,
-            type: 'member',
             created_by: user.id
           })
         }
@@ -199,7 +195,7 @@ export default function RoomRentsPage() {
         <button 
           onClick={handleSaveAll}
           className="btn btn-primary submit-btn" 
-          style={{ padding: '0.8rem 2rem', fontSize: '1rem', borderRadius: '12px', display: 'flex', alignItems: 'center', gap: '0.5rem', boxShadow: '0 8px 20px rgba(12, 173, 121, 0.3)' }}
+          style={{ padding: '0.8rem 2rem', fontSize: '1rem', borderRadius: '12px', display: 'flex', alignItems: 'center', gap: '0.5rem', boxShadow: '0 8px 20px rgba(95, 99, 98, 0.3)' }}
         >
           <Save size={18} /> Save Rents
         </button>
