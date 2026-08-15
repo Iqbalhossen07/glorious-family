@@ -148,7 +148,7 @@ export default function EditDepositPage() {
               <strong style={{ color: 'var(--text-muted)', fontSize: '1.2rem' }}>৳</strong>
               <input 
                 type="number" 
-                step="1"
+                step="any"
                 min="0"
                 className="input-field"
                 value={amount} 
