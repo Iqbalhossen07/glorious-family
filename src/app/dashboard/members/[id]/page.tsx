@@ -139,6 +139,47 @@ export default function MemberProfilePage({ params }: { params: Promise<{ id: st
             </div>
           </div>
 
+          <div style={{ background: 'var(--bg-card)', padding: '1.5rem', borderRadius: '12px', marginBottom: '2rem', border: '1px solid var(--border-light)' }}>
+            <h4 style={{ fontSize: '1rem', fontWeight: 700, marginBottom: '1rem', color: 'var(--text-main)' }}>Calculation Formula</h4>
+            <div style={{ fontSize: '0.9rem', color: 'var(--text-muted)', display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
+              <div style={{ display: 'flex', justifyContent: 'space-between' }}>
+                <span>Meal Cost ({analytics.member.totalMeals} * ৳{analytics.mealRate.toFixed(2)})</span>
+                <span>৳ {analytics.member.mealCost.toFixed(2)}</span>
+              </div>
+              <div style={{ display: 'flex', justifyContent: 'space-between' }}>
+                <span>Shared Other Cost</span>
+                <span>৳ {analytics.sharedExpensePerMember.toFixed(2)}</span>
+              </div>
+              <div style={{ display: 'flex', justifyContent: 'space-between' }}>
+                <span>Room Rent</span>
+                <span>৳ {analytics.member.memberRoomRentCost?.toFixed(2) || '0.00'}</span>
+              </div>
+              {analytics.member.memberPersonalCost > 0 && (
+                <div style={{ display: 'flex', justifyContent: 'space-between' }}>
+                  <span>Personal Other Cost</span>
+                  <span>৳ {analytics.member.memberPersonalCost?.toFixed(2) || '0.00'}</span>
+                </div>
+              )}
+              <div style={{ display: 'flex', justifyContent: 'space-between', fontWeight: 700, borderTop: '1px dashed rgba(0,0,0,0.1)', paddingTop: '0.5rem', color: 'var(--text-main)' }}>
+                <span>Total Cost</span>
+                <span>৳ {analytics.member.totalCost.toFixed(2)}</span>
+              </div>
+              
+              <div style={{ display: 'flex', justifyContent: 'space-between', marginTop: '1rem' }}>
+                <span>Total Bazar Done</span>
+                <span style={{ color: 'var(--primary)', fontWeight: 600 }}>- ৳ {Number(analytics.member.totalBazarPaid).toFixed(2)}</span>
+              </div>
+              <div style={{ display: 'flex', justifyContent: 'space-between' }}>
+                <span>Total Deposit Given</span>
+                <span style={{ color: 'var(--primary)', fontWeight: 600 }}>- ৳ {Number(analytics.member.totalDeposit).toFixed(2)}</span>
+              </div>
+              <div style={{ display: 'flex', justifyContent: 'space-between', fontWeight: 800, borderTop: '1px dashed rgba(0,0,0,0.2)', paddingTop: '0.8rem', fontSize: '1.05rem', color: analytics.member.balance >= 0 ? 'var(--primary)' : '#ef4444' }}>
+                <span>{analytics.member.balance >= 0 ? 'Receivable (Pabe)' : 'Payable (Dibe)'}</span>
+                <span>৳ {Math.abs(analytics.member.balance).toFixed(2)}</span>
+              </div>
+            </div>
+          </div>
+
           {/* Detailed Breakdowns */}
           <h3 style={{ fontSize: '1.25rem', fontWeight: 700, marginBottom: '1rem' }}>Detailed Breakdown</h3>
           

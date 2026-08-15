@@ -52,47 +52,51 @@ export default function DashboardPage() {
         
         setMembers(membersData)
 
+        // Filter shared and personal fixed costs
+        const sharedFixedData = fixedData.filter((f: any) => !f.user_id && f.item_name !== 'Room Rent')
+        const personalFixedData = fixedData.filter((f: any) => f.user_id && f.item_name !== 'Room Rent')
+        const roomRentsData = fixedData.filter((f: any) => f.item_name === 'Room Rent')
+
         // Calculate totals
-        const tMeals = mealsData.reduce((sum, m) => sum + Number(m.meal_count), 0)
-        const tBazar = bazarData.reduce((sum, b) => sum + Number(b.amount), 0)
-        const tDeposit = depositsData.reduce((sum, d) => sum + Number(d.amount), 0)
-        const tFixed = fixedData.reduce((sum, f) => sum + Number(f.amount), 0)
-        
-        // Fixed expenses paid directly from the mess fund (user_id is null)
-        const messFundFixed = fixedData.filter(f => !f.user_id).reduce((sum, f) => sum + Number(f.amount), 0)
+        const tMeals = mealsData.reduce((sum: any, m: any) => sum + Number(m.meal_count), 0)
+        const tBazar = bazarData.reduce((sum: any, b: any) => sum + Number(b.amount), 0)
+        const tDeposit = depositsData.reduce((sum: any, d: any) => sum + Number(d.amount), 0)
+        const tSharedFixed = sharedFixedData.reduce((sum: any, f: any) => sum + Number(f.amount), 0)
 
         setTotalMeals(tMeals)
         setTotalBazar(tBazar)
         setTotalDeposit(tDeposit)
-        setTotalFixedCost(tFixed)
-        setMessFundFixedCost(messFundFixed)
+        setTotalFixedCost(tSharedFixed)
+        setMessFundFixedCost(tSharedFixed)
 
         const mRate = tMeals > 0 ? (tBazar / tMeals) : 0
         const activeMembersCount = membersData.length
-        const fixedCostPerMember = activeMembersCount > 0 ? (tFixed / activeMembersCount) : 0
+        const sharedCostPerMember = activeMembersCount > 0 ? (tSharedFixed / activeMembersCount) : 0
 
         // Calculate member specific stats
         const stats = membersData.map(member => {
-           const memberMeals = mealsData.filter(m => m.user_id === member.id).reduce((sum, m) => sum + Number(m.meal_count), 0)
-           const memberDeposits = depositsData.filter(d => d.user_id === member.id).reduce((sum, d) => sum + Number(d.amount), 0)
-           const memberPaidFixed = fixedData.filter(f => f.user_id === member.id).reduce((sum, f) => sum + Number(f.amount), 0)
+           const memberMeals = mealsData.filter((m: any) => m.user_id === member.id).reduce((sum: any, m: any) => sum + Number(m.meal_count), 0)
+           const memberDeposits = depositsData.filter((d: any) => d.user_id === member.id).reduce((sum: any, d: any) => sum + Number(d.amount), 0)
+           const memberBazar = bazarData.filter((b: any) => b.user_id === member.id).reduce((sum: any, b: any) => sum + Number(b.amount), 0)
            
-           // member paid = deposit cash + out-of-pocket fixed expenses
-           const totalPaid = memberDeposits + memberPaidFixed
+           const memberRoomRent = roomRentsData.filter((f: any) => f.user_id === member.id).reduce((sum: any, f: any) => sum + Number(f.amount), 0)
+           const memberPersonalFixed = personalFixedData.filter((f: any) => f.user_id === member.id).reduce((sum: any, f: any) => sum + Number(f.amount), 0)
            
-           // member cost = meal cost + their share of fixed cost
+           const totalGiven = memberDeposits + memberBazar
+           
            const mealCost = memberMeals * mRate
-           const totalCost = mealCost + fixedCostPerMember
+           const totalCost = mealCost + sharedCostPerMember + memberRoomRent + memberPersonalFixed
            
-           // balance = paid - cost
-           const balance = totalPaid - totalCost
+           const balance = totalGiven - totalCost
            
            return {
              ...member,
              totalMeals: memberMeals,
              totalDeposit: memberDeposits,
-             totalPaidFixed: memberPaidFixed,
-             totalPaid: totalPaid,
+             totalBazarPaid: memberBazar,
+             memberRoomRent: memberRoomRent,
+             memberPersonalFixed: memberPersonalFixed,
+             totalGiven: totalGiven,
              mealCost: mealCost,
              totalCost: totalCost,
              balance: balance
@@ -378,7 +382,9 @@ export default function DashboardPage() {
                 <th style={{ padding: '1rem 0.5rem', textAlign: 'center', fontSize: '0.85rem', color: 'var(--text-muted)' }}>Meals</th>
                 <th style={{ padding: '1rem 0.5rem', textAlign: 'center', fontSize: '0.85rem', color: 'var(--text-muted)' }}>Meal Cost (৳)</th>
                 <th style={{ padding: '1rem 0.5rem', textAlign: 'center', fontSize: '0.85rem', color: 'var(--text-muted)' }}>Other Cost (৳)</th>
-                <th style={{ padding: '1rem 0.5rem', textAlign: 'center', fontSize: '0.85rem', color: 'var(--text-muted)' }}>Total Paid (৳)</th>
+                <th style={{ padding: '1rem 0.5rem', textAlign: 'center', fontSize: '0.85rem', color: 'var(--text-muted)' }}>Room Rent (৳)</th>
+                <th style={{ padding: '1rem 0.5rem', textAlign: 'center', fontSize: '0.85rem', color: 'var(--text-muted)' }}>Bazar (৳)</th>
+                <th style={{ padding: '1rem 0.5rem', textAlign: 'center', fontSize: '0.85rem', color: 'var(--text-muted)' }}>Deposit (৳)</th>
                 <th style={{ padding: '1rem 0.5rem', textAlign: 'right', fontSize: '0.85rem', color: 'var(--text-muted)' }}>Status</th>
               </tr>
             </thead>
@@ -395,13 +401,16 @@ export default function DashboardPage() {
                     {stat.mealCost.toFixed(2)}
                   </td>
                   <td style={{ padding: '1rem 0.5rem', textAlign: 'center', fontSize: '0.9rem', color: '#ef4444' }}>
-                    {(stat.totalCost - stat.mealCost).toFixed(2)}
+                    {(stat.totalCost - stat.mealCost - stat.memberRoomRent).toFixed(2)}
+                  </td>
+                  <td style={{ padding: '1rem 0.5rem', textAlign: 'center', fontSize: '0.9rem', color: '#f59e0b', fontWeight: 600 }}>
+                    {stat.memberRoomRent.toFixed(2)}
+                  </td>
+                  <td style={{ padding: '1rem 0.5rem', textAlign: 'center', fontSize: '0.9rem', color: 'var(--primary)', fontWeight: 600 }}>
+                    {stat.totalBazarPaid.toFixed(2)}
                   </td>
                   <td style={{ padding: '1rem 0.5rem', textAlign: 'center', fontSize: '0.9rem', color: 'var(--primary)' }}>
-                    {stat.totalPaid.toFixed(2)}
-                    {stat.totalPaidFixed > 0 && (
-                      <div style={{ fontSize: '0.7rem', color: 'var(--text-muted)' }}>(Incl. ৳{stat.totalPaidFixed} other)</div>
-                    )}
+                    {stat.totalDeposit.toFixed(2)}
                   </td>
                   <td style={{ padding: '1rem 0.5rem', textAlign: 'right', fontSize: '0.9rem', fontWeight: 700 }}>
                     {stat.balance > 0 ? (
@@ -438,16 +447,26 @@ export default function DashboardPage() {
                 </div>
                 <div>
                   <div style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>Other Cost</div>
-                  <div style={{ fontSize: '0.9rem', fontWeight: 600 }}>৳ {(stat.totalCost - stat.mealCost).toFixed(2)}</div>
+                  <div style={{ fontSize: '0.9rem', fontWeight: 600 }}>৳ {(stat.totalCost - stat.mealCost - stat.memberRoomRent).toFixed(2)}</div>
                 </div>
-                <div style={{ gridColumn: '1 / -1' }}>
-                  <div style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>Total Paid</div>
-                  <div style={{ fontSize: '0.9rem', fontWeight: 600 }}>৳ {stat.totalPaid.toFixed(2)}</div>
-                  {stat.totalPaidFixed > 0 && (
-                    <div style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>
-                      (Incl. ৳{stat.totalPaidFixed} other)
-                    </div>
-                  )}
+                <div>
+                  <div style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>Room Rent</div>
+                  <div style={{ fontSize: '0.9rem', fontWeight: 600, color: '#f59e0b' }}>৳ {stat.memberRoomRent.toFixed(2)}</div>
+                </div>
+                <div>
+                  <div style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>Total Cost</div>
+                  <div style={{ fontSize: '0.9rem', fontWeight: 600 }}>৳ {stat.totalCost.toFixed(2)}</div>
+                </div>
+                
+                <div style={{ gridColumn: '1 / -1', borderTop: '1px solid rgba(0,0,0,0.05)', paddingTop: '0.8rem', marginTop: '0.5rem', display: 'flex', justifyContent: 'space-between' }}>
+                  <div>
+                    <div style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>Bazar Done</div>
+                    <div style={{ fontSize: '0.9rem', fontWeight: 600, color: 'var(--primary)' }}>৳ {stat.totalBazarPaid.toFixed(2)}</div>
+                  </div>
+                  <div style={{ textAlign: 'right' }}>
+                    <div style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>Deposit Given</div>
+                    <div style={{ fontSize: '0.9rem', fontWeight: 600 }}>৳ {stat.totalDeposit.toFixed(2)}</div>
+                  </div>
                 </div>
               </div>
               

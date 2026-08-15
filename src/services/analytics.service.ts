@@ -53,43 +53,53 @@ export const AnalyticsService = {
       .order('date', { ascending: false })
 
     // --- Calculations ---
+    // --- Calculations ---
+    const sharedFixedExpenses = allFixedExpenses?.filter(f => !f.user_id && f.item_name !== 'Room Rent') || []
+    const personalFixedExpenses = allFixedExpenses?.filter(f => f.user_id && f.item_name !== 'Room Rent') || []
+    const roomRents = allFixedExpenses?.filter(f => f.item_name === 'Room Rent') || []
+
     const totalMessMeals = allMeals?.reduce((sum, item) => sum + Number(item.meal_count), 0) || 0
     const totalMessBazar = allBazar?.reduce((sum, item) => sum + Number(item.amount), 0) || 0
-    const totalMessFixedExpense = allFixedExpenses?.reduce((sum, item) => sum + Number(item.amount), 0) || 0
+    const totalSharedFixedExpense = sharedFixedExpenses.reduce((sum, item) => sum + Number(item.amount), 0)
     const numMembers = totalMembers || 1
 
     const mealRate = totalMessMeals > 0 ? (totalMessBazar / totalMessMeals) : 0
-    const sharedExpensePerMember = totalMessFixedExpense / numMembers
+    const sharedExpensePerMember = totalSharedFixedExpense / numMembers
 
     // Member specific calculations and lists
     const memberMealsList = allMeals?.filter(m => m.user_id === memberId) || []
     const memberBazarList = allBazar?.filter(m => m.user_id === memberId) || []
-    const memberFixedExpensesList = allFixedExpenses?.filter(m => m.user_id === memberId) || []
     const memberDepositList = memberDeposits || []
+    
+    const memberRoomRentList = roomRents.filter(m => m.user_id === memberId)
+    const memberPersonalFixedList = personalFixedExpenses.filter(m => m.user_id === memberId)
 
     const memberMeals = memberMealsList.reduce((sum, item) => sum + Number(item.meal_count), 0)
     const memberBazar = memberBazarList.reduce((sum, item) => sum + Number(item.amount), 0)
-    const memberFixedExpensesPaid = memberFixedExpensesList.reduce((sum, item) => sum + Number(item.amount), 0)
     const memberTotalDeposit = memberDepositList.reduce((sum, item) => sum + Number(item.amount), 0)
+    
+    const memberRoomRentCost = memberRoomRentList.reduce((sum, item) => sum + Number(item.amount), 0)
+    const memberPersonalCost = memberPersonalFixedList.reduce((sum, item) => sum + Number(item.amount), 0)
 
-    const memberTotalGiven = memberTotalDeposit + memberBazar + memberFixedExpensesPaid
+    const memberTotalGiven = memberTotalDeposit + memberBazar
     
     const memberMealCost = memberMeals * mealRate
-    const memberTotalCost = memberMealCost + sharedExpensePerMember
+    const memberTotalCost = memberMealCost + sharedExpensePerMember + memberRoomRentCost + memberPersonalCost
     
     const balance = memberTotalGiven - memberTotalCost
 
     return {
       totalMessMeals,
       totalMessBazar,
-      totalMessFixedExpense,
+      totalMessFixedExpense: totalSharedFixedExpense,
       mealRate,
       sharedExpensePerMember,
       member: {
         totalMeals: memberMeals,
         totalDeposit: memberTotalDeposit,
         totalBazarPaid: memberBazar,
-        totalFixedExpensesPaid: memberFixedExpensesPaid,
+        memberRoomRentCost,
+        memberPersonalCost,
         totalGiven: memberTotalGiven,
         mealCost: memberMealCost,
         totalCost: memberTotalCost,
@@ -98,7 +108,7 @@ export const AnalyticsService = {
           meals: memberMealsList,
           bazar: memberBazarList,
           deposits: memberDepositList,
-          fixedExpenses: memberFixedExpensesList
+          fixedExpenses: [...memberRoomRentList, ...memberPersonalFixedList]
         }
       }
     }

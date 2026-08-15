@@ -42,22 +42,28 @@ export default function SummaryPage() {
             FixedExpenseService.getFixedExpenseHistory(currentSession.id)
           ])
 
+          // Filter shared and personal fixed costs
+          const sharedFixedData = fixedData.filter((f: any) => !f.user_id && f.item_name !== 'Room Rent')
+          const personalFixedData = fixedData.filter((f: any) => f.user_id && f.item_name !== 'Room Rent')
+          const roomRentsData = fixedData.filter((f: any) => f.item_name === 'Room Rent')
+
           // Calculate totals
-          const tMeals = mealsData.reduce((sum, m) => sum + Number(m.meal_count), 0)
-          const tBazar = bazarData.reduce((sum, b) => sum + Number(b.amount), 0)
-          const tFixed = fixedData.reduce((sum, f) => sum + Number(f.amount), 0)
+          const tMeals = mealsData.reduce((sum: any, m: any) => sum + Number(m.meal_count), 0)
+          const tBazar = bazarData.reduce((sum: any, b: any) => sum + Number(b.amount), 0)
+          const tSharedFixed = sharedFixedData.reduce((sum: any, f: any) => sum + Number(f.amount), 0)
           const mRate = tMeals > 0 ? (tBazar / tMeals) : 0
 
-          // Determine relevant members (Active OR has activity)
-          const relevantMembers = membersData.map(member => {
-             const memberMeals = mealsData.filter(m => m.user_id === member.id).reduce((sum, m) => sum + Number(m.meal_count), 0)
-             const memberDeposits = depositsData.filter(d => d.user_id === member.id).reduce((sum, d) => sum + Number(d.amount), 0)
-             const memberBazar = bazarData.filter(b => b.user_id === member.id).reduce((sum, b) => sum + Number(b.amount), 0)
-             const memberPaidFixed = fixedData.filter(f => f.user_id === member.id).reduce((sum, f) => sum + Number(f.amount), 0)
+          // Determine relevant members
+          let relevantMembers = membersData.map(member => {
+             const memberMeals = mealsData.filter((m: any) => m.user_id === member.id).reduce((sum: any, m: any) => sum + Number(m.meal_count), 0)
+             const memberDeposits = depositsData.filter((d: any) => d.user_id === member.id).reduce((sum: any, d: any) => sum + Number(d.amount), 0)
+             const memberBazar = bazarData.filter((b: any) => b.user_id === member.id).reduce((sum: any, b: any) => sum + Number(b.amount), 0)
              
-             // Past balances are carried over as deposits, so they will be caught by memberDeposits > 0
-             // (or < 0 if negative). If it's 0 and no other activity, hasActivity is false.
-             const hasActivity = memberMeals > 0 || memberDeposits !== 0 || memberBazar > 0 || memberPaidFixed > 0
+             // Room rent and personal other expenses
+             const memberRoomRent = roomRentsData.filter((f: any) => f.user_id === member.id).reduce((sum: any, f: any) => sum + Number(f.amount), 0)
+             const memberPersonalFixed = personalFixedData.filter((f: any) => f.user_id === member.id).reduce((sum: any, f: any) => sum + Number(f.amount), 0)
+             
+             const hasActivity = memberMeals > 0 || memberDeposits !== 0 || memberBazar > 0 || memberRoomRent > 0 || memberPersonalFixed > 0
              
              return {
                ...member,
@@ -65,20 +71,21 @@ export default function SummaryPage() {
                totalMeals: memberMeals,
                totalDeposit: memberDeposits,
                totalBazarPaid: memberBazar,
-               totalPaidFixed: memberPaidFixed,
-               totalGiven: memberDeposits + memberBazar + memberPaidFixed
+               memberRoomRent: memberRoomRent,
+               memberPersonalFixed: memberPersonalFixed,
+               totalGiven: memberDeposits + memberBazar
              }
           }).filter(m => m.status === 'active' || m.hasActivity)
 
           const activeMembersCount = relevantMembers.length
-          const fixedCostPerMember = activeMembersCount > 0 ? (tFixed / activeMembersCount) : 0
+          const sharedCostPerMember = activeMembersCount > 0 ? (tSharedFixed / activeMembersCount) : 0
 
           setMealRate(mRate)
-          setSharedExpense(fixedCostPerMember)
+          setSharedExpense(sharedCostPerMember)
 
           const stats = relevantMembers.map(member => {
              const mealCost = member.totalMeals * mRate
-             const totalCost = mealCost + fixedCostPerMember
+             const totalCost = mealCost + sharedCostPerMember + member.memberRoomRent + member.memberPersonalFixed
              const balance = member.totalGiven - totalCost
              
              return {
@@ -230,98 +237,104 @@ export default function SummaryPage() {
       <>
         {/* Desktop Table View */}
         <div className="responsive-table hide-on-mobile" style={{ background: 'rgba(255, 255, 255, 0.3)', backdropFilter: 'blur(16px)', WebkitBackdropFilter: 'blur(16px)', border: '1px solid rgba(255, 255, 255, 0.6)', borderRadius: '12px', padding: '1rem', boxShadow: '0 4px 12px rgba(148, 163, 184, 0.05)', overflowX: 'auto' }}>
-          <table className="responsive-table" style={{ width: '100%', borderCollapse: 'collapse', minWidth: '800px' }}>
+          <table className="responsive-table" style={{ width: '100%', borderCollapse: 'collapse', minWidth: '1000px' }}>
             <thead>
               <tr style={{ borderBottom: '1px solid var(--border-light)' }}>
-                <th style={{ textAlign: 'left', padding: '1rem', fontSize: '0.85rem', color: 'var(--text-muted)' }}>Member Name</th>
-                <th style={{ textAlign: 'center', padding: '1rem', fontSize: '0.85rem', color: 'var(--text-muted)' }}>Total Meals</th>
-                <th style={{ textAlign: 'right', padding: '1rem', fontSize: '0.85rem', color: 'var(--text-muted)' }}>Total Meal Cost (৳)</th>
-                <th style={{ textAlign: 'right', padding: '1rem', fontSize: '0.85rem', color: 'var(--text-muted)' }}>Total Expense (৳)</th>
-                <th style={{ textAlign: 'right', padding: '1rem', fontSize: '0.85rem', color: 'var(--text-muted)' }}>Deposit & Others (৳)</th>
-                <th style={{ textAlign: 'right', padding: '1rem', fontSize: '0.85rem', color: 'var(--text-muted)' }}>Balance (৳)</th>
+                <th style={{ textAlign: 'left', padding: '1rem', fontSize: '0.85rem', color: 'var(--text-muted)' }}>Member</th>
+                <th style={{ textAlign: 'center', padding: '1rem', fontSize: '0.85rem', color: 'var(--text-muted)' }}>Meals</th>
+                <th style={{ textAlign: 'right', padding: '1rem', fontSize: '0.85rem', color: 'var(--text-muted)' }}>Meal Cost</th>
+                <th style={{ textAlign: 'right', padding: '1rem', fontSize: '0.85rem', color: 'var(--text-muted)' }}>Other Cost</th>
+                <th style={{ textAlign: 'right', padding: '1rem', fontSize: '0.85rem', color: 'var(--text-muted)' }}>Room Rent</th>
+                <th style={{ textAlign: 'right', padding: '1rem', fontSize: '0.85rem', color: 'var(--text-muted)' }}>Total Bazar</th>
+                <th style={{ textAlign: 'right', padding: '1rem', fontSize: '0.85rem', color: 'var(--text-muted)' }}>Total Deposit</th>
+                <th style={{ textAlign: 'right', padding: '1rem', fontSize: '0.85rem', color: 'var(--text-muted)' }}>Status (Payable)</th>
               </tr>
             </thead>
             <tbody>
-              {memberStats.map((stat, i) => (
-                <tr key={stat.id} style={{ borderBottom: i === memberStats.length - 1 ? 'none' : '1px solid rgba(0,0,0,0.03)' }}>
-                  <td style={{ padding: '1rem' }}>
-                    <div style={{ fontWeight: 600 }}>{stat.name}</div>
-                  </td>
-                  <td style={{ padding: '1rem', textAlign: 'center', fontWeight: 500 }}>{Number(stat.totalMeals).toFixed(2)}</td>
-                  <td style={{ padding: '1rem', textAlign: 'right' }}>{Number(stat.mealCost).toFixed(2)}</td>
-                  <td style={{ padding: '1rem', textAlign: 'right', fontWeight: 600 }}>{Number(stat.totalCost).toFixed(2)}</td>
-                  <td style={{ padding: '1rem', textAlign: 'right' }}>
-                    <div style={{ fontWeight: 600 }}>{Number(stat.totalGiven).toFixed(2)}</div>
-                    { (stat.totalBazarPaid > 0 || stat.totalPaidFixed > 0) && (
-                      <div style={{ fontSize: '0.75rem', color: 'var(--text-muted)', marginTop: '0.2rem' }}>
-                        (Dep: {Number(stat.totalDeposit).toFixed(0)}, Baz: {Number(stat.totalBazarPaid).toFixed(0)}, Oth: {Number(stat.totalPaidFixed).toFixed(0)})
-                      </div>
-                    )}
-                  </td>
-                  <td style={{ padding: '1rem', textAlign: 'right' }}>
-                    {stat.balance >= 0 ? (
-                      <div style={{ color: 'var(--primary)', fontWeight: 700 }}>
-                        + {Number(stat.balance).toFixed(2)}
-                        <div style={{ fontSize: '0.75rem', fontWeight: 400 }}>(Will Get)</div>
-                      </div>
-                    ) : (
-                      <div style={{ color: '#ef4444', fontWeight: 700 }}>
-                        {Number(stat.balance).toFixed(2)}
-                        <div style={{ fontSize: '0.75rem', fontWeight: 400 }}>(Will Give)</div>
-                      </div>
-                    )}
-                  </td>
-                </tr>
-              ))}
+              {memberStats.map((stat, i) => {
+                const otherCost = sharedExpense + stat.memberPersonalFixed;
+                return (
+                  <tr key={stat.id} style={{ borderBottom: i === memberStats.length - 1 ? 'none' : '1px solid rgba(0,0,0,0.03)' }}>
+                    <td style={{ padding: '1rem' }}>
+                      <div style={{ fontWeight: 600 }}>{stat.name}</div>
+                    </td>
+                    <td style={{ padding: '1rem', textAlign: 'center', fontWeight: 500 }}>{Number(stat.totalMeals).toFixed(2)}</td>
+                    <td style={{ padding: '1rem', textAlign: 'right' }}>৳ {Number(stat.mealCost).toFixed(2)}</td>
+                    <td style={{ padding: '1rem', textAlign: 'right' }}>৳ {Number(otherCost).toFixed(2)}</td>
+                    <td style={{ padding: '1rem', textAlign: 'right', color: '#f59e0b', fontWeight: 600 }}>৳ {Number(stat.memberRoomRent).toFixed(2)}</td>
+                    <td style={{ padding: '1rem', textAlign: 'right', color: 'var(--primary)', fontWeight: 600 }}>৳ {Number(stat.totalBazarPaid).toFixed(2)}</td>
+                    <td style={{ padding: '1rem', textAlign: 'right' }}>৳ {Number(stat.totalDeposit).toFixed(2)}</td>
+                    <td style={{ padding: '1rem', textAlign: 'right' }}>
+                      {stat.balance >= 0 ? (
+                        <div style={{ color: 'var(--primary)', fontWeight: 700 }}>
+                          + ৳ {Number(stat.balance).toFixed(2)}
+                          <div style={{ fontSize: '0.75rem', fontWeight: 400 }}>(Receivable)</div>
+                        </div>
+                      ) : (
+                        <div style={{ color: '#ef4444', fontWeight: 700 }}>
+                          ৳ {Number(Math.abs(stat.balance)).toFixed(2)}
+                          <div style={{ fontSize: '0.75rem', fontWeight: 400 }}>(Payable)</div>
+                        </div>
+                      )}
+                    </td>
+                  </tr>
+                )
+              })}
             </tbody>
           </table>
         </div>
 
         {/* Mobile Card View */}
         <div className="hide-on-desktop" style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
-          {memberStats.map((stat) => (
-            <div key={stat.id} className="minimal-card" style={{ padding: '1rem', background: 'rgba(255, 255, 255, 0.4)' }}>
-              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '1rem', borderBottom: '1px solid rgba(0,0,0,0.05)', paddingBottom: '0.8rem' }}>
-                <span style={{ fontSize: '1.1rem', fontWeight: 700, color: 'var(--text-main)' }}>{stat.name}</span>
-                <span style={{ fontSize: '0.9rem', fontWeight: 600, color: 'var(--text-muted)' }}>{Number(stat.totalMeals).toFixed(2)} Meals</span>
-              </div>
-              
-              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '0.8rem', marginBottom: '1rem' }}>
-                <div>
-                  <div style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>Meal Cost</div>
-                  <div style={{ fontSize: '0.9rem', fontWeight: 600 }}>৳ {Number(stat.mealCost).toFixed(2)}</div>
+          {memberStats.map((stat) => {
+            const otherCost = sharedExpense + stat.memberPersonalFixed;
+            return (
+              <div key={stat.id} className="minimal-card" style={{ padding: '1rem', background: 'rgba(255, 255, 255, 0.4)' }}>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '1rem', borderBottom: '1px solid rgba(0,0,0,0.05)', paddingBottom: '0.8rem' }}>
+                  <span style={{ fontSize: '1.1rem', fontWeight: 700, color: 'var(--text-main)' }}>{stat.name}</span>
+                  <span style={{ fontSize: '0.9rem', fontWeight: 600, color: 'var(--text-muted)' }}>{Number(stat.totalMeals).toFixed(2)} Meals</span>
                 </div>
-                <div>
-                  <div style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>Total Expense</div>
-                  <div style={{ fontSize: '0.9rem', fontWeight: 600 }}>৳ {Number(stat.totalCost).toFixed(2)}</div>
-                </div>
-                <div style={{ gridColumn: '1 / -1' }}>
-                  <div style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>Deposit & Others</div>
-                  <div style={{ fontSize: '0.9rem', fontWeight: 600 }}>৳ {Number(stat.totalGiven).toFixed(2)}</div>
-                  { (stat.totalBazarPaid > 0 || stat.totalPaidFixed > 0) && (
-                    <div style={{ fontSize: '0.75rem', color: 'var(--text-muted)', marginTop: '0.2rem' }}>
-                      (Dep: {Number(stat.totalDeposit).toFixed(0)}, Baz: {Number(stat.totalBazarPaid).toFixed(0)}, Oth: {Number(stat.totalPaidFixed).toFixed(0)})
+                
+                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '0.8rem', marginBottom: '1rem' }}>
+                  <div>
+                    <div style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>Meal Cost</div>
+                    <div style={{ fontSize: '0.9rem', fontWeight: 600 }}>৳ {Number(stat.mealCost).toFixed(2)}</div>
+                  </div>
+                  <div>
+                    <div style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>Other Cost</div>
+                    <div style={{ fontSize: '0.9rem', fontWeight: 600 }}>৳ {Number(otherCost).toFixed(2)}</div>
+                  </div>
+                  <div>
+                    <div style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>Room Rent</div>
+                    <div style={{ fontSize: '0.9rem', fontWeight: 600, color: '#f59e0b' }}>৳ {Number(stat.memberRoomRent).toFixed(2)}</div>
+                  </div>
+                  <div>
+                    <div style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>Total Cost</div>
+                    <div style={{ fontSize: '0.9rem', fontWeight: 600 }}>৳ {Number(stat.totalCost).toFixed(2)}</div>
+                  </div>
+                  <div style={{ gridColumn: '1 / -1', borderTop: '1px solid rgba(0,0,0,0.05)', paddingTop: '0.8rem', marginTop: '0.5rem', display: 'flex', justifyContent: 'space-between' }}>
+                    <div>
+                      <div style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>Bazar Done</div>
+                      <div style={{ fontSize: '0.9rem', fontWeight: 600, color: 'var(--primary)' }}>৳ {Number(stat.totalBazarPaid).toFixed(2)}</div>
                     </div>
+                    <div style={{ textAlign: 'right' }}>
+                      <div style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>Deposit Given</div>
+                      <div style={{ fontSize: '0.9rem', fontWeight: 600 }}>৳ {Number(stat.totalDeposit).toFixed(2)}</div>
+                    </div>
+                  </div>
+                </div>
+
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: '1rem', paddingTop: '1rem', borderTop: '2px dashed rgba(0,0,0,0.05)' }}>
+                  <span style={{ fontSize: '0.9rem', color: 'var(--text-muted)', fontWeight: 600 }}>Status</span>
+                  {stat.balance >= 0 ? (
+                    <span style={{ color: 'var(--primary)', fontWeight: 700, fontSize: '1.1rem' }}>+ ৳ {Number(stat.balance).toFixed(2)} (Receivable)</span>
+                  ) : (
+                    <span style={{ color: '#ef4444', fontWeight: 700, fontSize: '1.1rem' }}>৳ {Number(Math.abs(stat.balance)).toFixed(2)} (Payable)</span>
                   )}
                 </div>
               </div>
-              
-              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', borderTop: '1px solid rgba(0,0,0,0.05)', paddingTop: '0.8rem' }}>
-                <span style={{ fontSize: '0.85rem', color: 'var(--text-muted)', fontWeight: 600 }}>Final Balance</span>
-                {stat.balance >= 0 ? (
-                  <div style={{ textAlign: 'right' }}>
-                    <div style={{ color: 'var(--primary)', fontWeight: 700, fontSize: '1.1rem' }}>+ ৳ {Number(stat.balance).toFixed(2)}</div>
-                    <div style={{ fontSize: '0.75rem', color: 'var(--primary)' }}>Will Get</div>
-                  </div>
-                ) : (
-                  <div style={{ textAlign: 'right' }}>
-                    <div style={{ color: '#ef4444', fontWeight: 700, fontSize: '1.1rem' }}>- ৳ {Math.abs(Number(stat.balance)).toFixed(2)}</div>
-                    <div style={{ fontSize: '0.75rem', color: '#ef4444' }}>Will Give</div>
-                  </div>
-                )}
-              </div>
-            </div>
-          ))}
+            )
+          })}
         </div>
       </>
 
