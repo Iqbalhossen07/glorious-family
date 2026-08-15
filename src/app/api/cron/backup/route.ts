@@ -60,32 +60,42 @@ export async function GET(request: Request) {
       dbDump[table] = data;
     }
 
-    // Convert dump to JSON string
+    // Convert dump to JSON string and send JSON
     const jsonString = JSON.stringify(dbDump, null, 2);
     const dateStr = new Date().toISOString().split('T')[0];
-    const fileName = `glorious_mess_backup_${dateStr}.json`;
+    const jsonFileName = `glorious_mess_backup_${dateStr}.json`;
 
-    // Send to Telegram as document
-    const formData = new FormData();
-    formData.append('chat_id', TELEGRAM_CHAT_ID);
-    formData.append('caption', `📊 Daily Database Backup\nDate: ${new Date().toLocaleString('en-BD', { timeZone: 'Asia/Dhaka' })}\n\nHere is your full database backup. Keep it safe!`);
-    
-    // Convert string to Blob
-    const blob = new Blob([jsonString], { type: 'application/json' });
-    formData.append('document', blob, fileName);
+    const jsonFormData = new FormData();
+    jsonFormData.append('chat_id', TELEGRAM_CHAT_ID);
+    jsonFormData.append('caption', `📊 Daily Database Backup (JSON)\nDate: ${new Date().toLocaleString('en-BD', { timeZone: 'Asia/Dhaka' })}\n\nHere is your full database backup for system restore.`);
+    jsonFormData.append('document', new Blob([jsonString], { type: 'application/json' }), jsonFileName);
 
-    const telegramRes = await fetch(`https://api.telegram.org/bot${TELEGRAM_BOT_TOKEN}/sendDocument`, {
-      method: 'POST',
-      body: formData,
-    });
+    const telegramRes = await fetch(`https://api.telegram.org/bot${TELEGRAM_BOT_TOKEN}/sendDocument`, { method: 'POST', body: jsonFormData });
 
     if (!telegramRes.ok) {
       const errorData = await telegramRes.json();
-      console.error('Telegram API Error:', errorData);
-      return NextResponse.json({ error: 'Failed to send to Telegram', details: errorData }, { status: 500 });
+      console.error('Telegram API Error on JSON:', errorData);
+      return NextResponse.json({ error: 'Failed to send JSON to Telegram', details: errorData }, { status: 500 });
     }
 
-    return NextResponse.json({ success: true, message: 'Backup sent to Telegram successfully' });
+    // Convert each table to CSV and send
+    for (const table of tables) {
+      if (dbDump[table] && dbDump[table].length > 0) {
+        const csvString = jsonToCSV(dbDump[table]);
+        const csvFileName = `${table}_${dateStr}.csv`;
+        const csvFormData = new FormData();
+        csvFormData.append('chat_id', TELEGRAM_CHAT_ID);
+        csvFormData.append('caption', `📁 ${table} (Excel/CSV format)`);
+        csvFormData.append('document', new Blob([csvString], { type: 'text/csv' }), csvFileName);
+
+        await fetch(`https://api.telegram.org/bot${TELEGRAM_BOT_TOKEN}/sendDocument`, { method: 'POST', body: csvFormData });
+        
+        // Wait a tiny bit to avoid hitting Telegram API rate limits (optional but safe)
+        await new Promise(resolve => setTimeout(resolve, 500));
+      }
+    }
+
+    return NextResponse.json({ success: true, message: 'Backup JSON and CSVs sent to Telegram successfully' });
 
   } catch (error: any) {
     console.error('Cron job error:', error);
