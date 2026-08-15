@@ -154,12 +154,6 @@ export default function MemberProfilePage({ params }: { params: Promise<{ id: st
                 <span>Room Rent</span>
                 <span>৳ {analytics.member.memberRoomRentCost?.toFixed(2) || '0.00'}</span>
               </div>
-              {analytics.member.memberPersonalCost > 0 && (
-                <div style={{ display: 'flex', justifyContent: 'space-between' }}>
-                  <span>Personal Other Cost</span>
-                  <span>৳ {analytics.member.memberPersonalCost?.toFixed(2) || '0.00'}</span>
-                </div>
-              )}
               <div style={{ display: 'flex', justifyContent: 'space-between', fontWeight: 700, borderTop: '1px dashed rgba(0,0,0,0.1)', paddingTop: '0.5rem', color: 'var(--text-main)' }}>
                 <span>Total Cost</span>
                 <span>৳ {analytics.member.totalCost.toFixed(2)}</span>
@@ -173,6 +167,12 @@ export default function MemberProfilePage({ params }: { params: Promise<{ id: st
                 <span>Total Deposit Given</span>
                 <span style={{ color: 'var(--primary)', fontWeight: 600 }}>- ৳ {Number(analytics.member.totalDeposit).toFixed(2)}</span>
               </div>
+              {analytics.member.memberPaidFixedCost > 0 && (
+                <div style={{ display: 'flex', justifyContent: 'space-between' }}>
+                  <span>Other Expenses Paid</span>
+                  <span style={{ color: 'var(--primary)', fontWeight: 600 }}>- ৳ {Number(analytics.member.memberPaidFixedCost).toFixed(2)}</span>
+                </div>
+              )}
               <div style={{ display: 'flex', justifyContent: 'space-between', fontWeight: 800, borderTop: '1px dashed rgba(0,0,0,0.2)', paddingTop: '0.8rem', fontSize: '1.05rem', color: analytics.member.balance >= 0 ? 'var(--primary)' : '#ef4444' }}>
                 <span>{analytics.member.balance >= 0 ? 'Receivable (Pabe)' : 'Payable (Dibe)'}</span>
                 <span>৳ {Math.abs(analytics.member.balance).toFixed(2)}</span>

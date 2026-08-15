@@ -51,23 +51,23 @@ export default function DashboardPage() {
         ])
         
         setMembers(membersData)
-
-        // Filter shared and personal fixed costs
-        const sharedFixedData = fixedData.filter((f: any) => !f.user_id && f.item_name !== 'Room Rent')
-        const personalFixedData = fixedData.filter((f: any) => f.user_id && f.item_name !== 'Room Rent')
+        const allOtherExpenses = fixedData.filter((f: any) => f.item_name !== 'Room Rent')
         const roomRentsData = fixedData.filter((f: any) => f.item_name === 'Room Rent')
 
         // Calculate totals
         const tMeals = mealsData.reduce((sum: any, m: any) => sum + Number(m.meal_count), 0)
         const tBazar = bazarData.reduce((sum: any, b: any) => sum + Number(b.amount), 0)
         const tDeposit = depositsData.reduce((sum: any, d: any) => sum + Number(d.amount), 0)
-        const tSharedFixed = sharedFixedData.reduce((sum: any, f: any) => sum + Number(f.amount), 0)
+        const tSharedFixed = allOtherExpenses.reduce((sum: any, f: any) => sum + Number(f.amount), 0)
+        
+        // Paid directly from the mess fund (user_id is null)
+        const messFundFixed = allOtherExpenses.filter(f => !f.user_id).reduce((sum: any, f: any) => sum + Number(f.amount), 0)
 
         setTotalMeals(tMeals)
         setTotalBazar(tBazar)
         setTotalDeposit(tDeposit)
         setTotalFixedCost(tSharedFixed)
-        setMessFundFixedCost(tSharedFixed)
+        setMessFundFixedCost(messFundFixed)
 
         const mRate = tMeals > 0 ? (tBazar / tMeals) : 0
         const activeMembersCount = membersData.length
@@ -80,12 +80,12 @@ export default function DashboardPage() {
            const memberBazar = bazarData.filter((b: any) => b.user_id === member.id).reduce((sum: any, b: any) => sum + Number(b.amount), 0)
            
            const memberRoomRent = roomRentsData.filter((f: any) => f.user_id === member.id).reduce((sum: any, f: any) => sum + Number(f.amount), 0)
-           const memberPersonalFixed = personalFixedData.filter((f: any) => f.user_id === member.id).reduce((sum: any, f: any) => sum + Number(f.amount), 0)
+           const memberPaidFixed = allOtherExpenses.filter((f: any) => f.user_id === member.id).reduce((sum: any, f: any) => sum + Number(f.amount), 0)
            
-           const totalGiven = memberDeposits + memberBazar
+           const totalGiven = memberDeposits + memberBazar + memberPaidFixed
            
            const mealCost = memberMeals * mRate
-           const totalCost = mealCost + sharedCostPerMember + memberRoomRent + memberPersonalFixed
+           const totalCost = mealCost + sharedCostPerMember + memberRoomRent
            
            const balance = totalGiven - totalCost
            
@@ -95,7 +95,7 @@ export default function DashboardPage() {
              totalDeposit: memberDeposits,
              totalBazarPaid: memberBazar,
              memberRoomRent: memberRoomRent,
-             memberPersonalFixed: memberPersonalFixed,
+             memberPaidFixed: memberPaidFixed,
              totalGiven: totalGiven,
              mealCost: mealCost,
              totalCost: totalCost,

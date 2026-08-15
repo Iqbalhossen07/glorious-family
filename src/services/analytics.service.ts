@@ -53,14 +53,12 @@ export const AnalyticsService = {
       .order('date', { ascending: false })
 
     // --- Calculations ---
-    // --- Calculations ---
-    const sharedFixedExpenses = allFixedExpenses?.filter(f => !f.user_id && f.item_name !== 'Room Rent') || []
-    const personalFixedExpenses = allFixedExpenses?.filter(f => f.user_id && f.item_name !== 'Room Rent') || []
+    const allOtherExpenses = allFixedExpenses?.filter(f => f.item_name !== 'Room Rent') || []
     const roomRents = allFixedExpenses?.filter(f => f.item_name === 'Room Rent') || []
 
     const totalMessMeals = allMeals?.reduce((sum, item) => sum + Number(item.meal_count), 0) || 0
     const totalMessBazar = allBazar?.reduce((sum, item) => sum + Number(item.amount), 0) || 0
-    const totalSharedFixedExpense = sharedFixedExpenses.reduce((sum, item) => sum + Number(item.amount), 0)
+    const totalSharedFixedExpense = allOtherExpenses.reduce((sum, item) => sum + Number(item.amount), 0)
     const numMembers = totalMembers || 1
 
     const mealRate = totalMessMeals > 0 ? (totalMessBazar / totalMessMeals) : 0
@@ -72,19 +70,19 @@ export const AnalyticsService = {
     const memberDepositList = memberDeposits || []
     
     const memberRoomRentList = roomRents.filter(m => m.user_id === memberId)
-    const memberPersonalFixedList = personalFixedExpenses.filter(m => m.user_id === memberId)
+    const memberPaidFixedList = allOtherExpenses.filter(m => m.user_id === memberId)
 
     const memberMeals = memberMealsList.reduce((sum, item) => sum + Number(item.meal_count), 0)
     const memberBazar = memberBazarList.reduce((sum, item) => sum + Number(item.amount), 0)
     const memberTotalDeposit = memberDepositList.reduce((sum, item) => sum + Number(item.amount), 0)
     
     const memberRoomRentCost = memberRoomRentList.reduce((sum, item) => sum + Number(item.amount), 0)
-    const memberPersonalCost = memberPersonalFixedList.reduce((sum, item) => sum + Number(item.amount), 0)
+    const memberPaidFixedCost = memberPaidFixedList.reduce((sum, item) => sum + Number(item.amount), 0)
 
-    const memberTotalGiven = memberTotalDeposit + memberBazar
+    const memberTotalGiven = memberTotalDeposit + memberBazar + memberPaidFixedCost
     
     const memberMealCost = memberMeals * mealRate
-    const memberTotalCost = memberMealCost + sharedExpensePerMember + memberRoomRentCost + memberPersonalCost
+    const memberTotalCost = memberMealCost + sharedExpensePerMember + memberRoomRentCost
     
     const balance = memberTotalGiven - memberTotalCost
 
@@ -99,7 +97,7 @@ export const AnalyticsService = {
         totalDeposit: memberTotalDeposit,
         totalBazarPaid: memberBazar,
         memberRoomRentCost,
-        memberPersonalCost,
+        memberPaidFixedCost,
         totalGiven: memberTotalGiven,
         mealCost: memberMealCost,
         totalCost: memberTotalCost,
@@ -108,7 +106,7 @@ export const AnalyticsService = {
           meals: memberMealsList,
           bazar: memberBazarList,
           deposits: memberDepositList,
-          fixedExpenses: [...memberRoomRentList, ...memberPersonalFixedList]
+          fixedExpenses: [...memberRoomRentList, ...memberPaidFixedList]
         }
       }
     }
