@@ -33,6 +33,7 @@ export default function DashboardPage() {
   const [totalDeposit, setTotalDeposit] = useState(0)
   const [totalFixedCost, setTotalFixedCost] = useState(0)
   const [messFundFixedCost, setMessFundFixedCost] = useState(0)
+  const [totalRoomRent, setTotalRoomRent] = useState(0)
   const [memberStats, setMemberStats] = useState<any[]>([])
 
   const loadData = async () => {
@@ -59,6 +60,7 @@ export default function DashboardPage() {
         const tBazar = bazarData.reduce((sum: any, b: any) => sum + Number(b.amount), 0)
         const tDeposit = depositsData.reduce((sum: any, d: any) => sum + Number(d.amount), 0)
         const tSharedFixed = allOtherExpenses.reduce((sum: any, f: any) => sum + Number(f.amount), 0)
+        const tRoomRent = roomRentsData.reduce((sum: any, f: any) => sum + Number(f.amount), 0)
         
         // Paid directly from the mess fund (user_id is null)
         const messFundFixed = allOtherExpenses.filter(f => !f.user_id).reduce((sum: any, f: any) => sum + Number(f.amount), 0)
@@ -68,6 +70,7 @@ export default function DashboardPage() {
         setTotalDeposit(tDeposit)
         setTotalFixedCost(tSharedFixed)
         setMessFundFixedCost(messFundFixed)
+        setTotalRoomRent(tRoomRent)
 
         const mRate = tMeals > 0 ? (tBazar / tMeals) : 0
         const activeMembersCount = membersData.length
@@ -211,8 +214,8 @@ export default function DashboardPage() {
 
   const mealRate = totalMeals > 0 ? (totalBazar / totalMeals).toFixed(2) : '0.00'
   
-  // Manager Balance = (Total Cash Given to Manager as Deposits) - (Total Bazar Paid by Manager) - (Total Fixed Expenses Paid by Manager/Mess Fund)
-  const managerBalance = totalDeposit - totalBazar - messFundFixedCost
+  // Manager Balance = (Total Cash Given to Manager as Deposits) - (Total Room Rents Paid to House Owner) - (Total Fixed Expenses Paid by Manager/Mess Fund)
+  const managerBalance = totalDeposit - messFundFixedCost - totalRoomRent
   
   const perPersonFixedCost = memberStats.length > 0 ? (totalFixedCost / memberStats.length).toFixed(2) : '0.00'
 
@@ -364,7 +367,7 @@ export default function DashboardPage() {
             ৳ {Number(managerBalance).toFixed(2)}
           </p>
           <p style={{ fontSize: '0.85rem', color: 'var(--text-muted)', marginTop: '0.5rem' }}>
-            (Total Deposits: ৳ {Number(totalDeposit).toFixed(2)}) - (Total Bazar: ৳ {Number(totalBazar).toFixed(2)}) - (Other Exp. Paid by Fund: ৳ {messFundFixedCost})
+            (Total Deposits: ৳ {Number(totalDeposit).toFixed(2)}) - (Fund Exp: ৳ {messFundFixedCost}) - (Total Room Rent: ৳ {totalRoomRent})
           </p>
         </div>
 
