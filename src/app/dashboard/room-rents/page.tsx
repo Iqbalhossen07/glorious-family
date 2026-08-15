@@ -145,19 +145,19 @@ export default function RoomRentsPage() {
         </div>
       </div>
 
-      <div className="minimal-card" style={{ padding: '1.5rem', marginBottom: '2rem' }}>
+      <div className="minimal-card" style={{ padding: '1.5rem', marginBottom: '1.5rem' }}>
         <div style={{ marginBottom: '1.5rem' }}>
           <label style={{ display: 'block', fontSize: '0.85rem', fontWeight: 600, color: 'var(--text-muted)', marginBottom: '0.5rem', textTransform: 'uppercase', letterSpacing: '0.5px' }}>
             Date
           </label>
-          <div style={{ position: 'relative' }}>
+          <div style={{ position: 'relative', maxWidth: '300px' }}>
             <Key size={18} style={{ position: 'absolute', left: '1rem', top: '50%', transform: 'translateY(-50%)', color: 'var(--primary)' }} />
             <input 
               type="date" 
               value={date}
               onChange={(e) => setDate(e.target.value)}
               className="glass-input"
-              style={{ paddingLeft: '3rem', width: '100%', fontSize: '1rem' }}
+              style={{ paddingLeft: '3rem', width: '100%', fontSize: '1rem', background: '#f8fafc', border: '1px solid #e2e8f0', borderRadius: '10px' }}
               required
             />
           </div>
@@ -166,15 +166,16 @@ export default function RoomRentsPage() {
         <div style={{ marginTop: '2rem' }}>
           <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem', marginBottom: '1rem', paddingBottom: '0.5rem', borderBottom: '2px solid rgba(0,0,0,0.05)' }}>
             <div style={{ fontWeight: 700, color: 'var(--text-muted)', fontSize: '0.85rem', textTransform: 'uppercase' }}>Member Name</div>
-            <div style={{ fontWeight: 700, color: 'var(--text-muted)', fontSize: '0.85rem', textTransform: 'uppercase', textAlign: 'center' }}>Room Rent Amount</div>
+            <div style={{ fontWeight: 700, color: 'var(--text-muted)', fontSize: '0.85rem', textTransform: 'uppercase', textAlign: 'right' }}>Amount</div>
           </div>
 
           {members.map(member => (
-            <div key={member.id} style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem', alignItems: 'center', marginBottom: '1rem', background: '#f8fafc', padding: '0.5rem 1rem', borderRadius: '8px' }}>
-              <div style={{ fontWeight: 600, color: 'var(--text-main)', fontSize: '1rem', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+            <div key={member.id} style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem', alignItems: 'center', marginBottom: '1rem', background: '#f8fafc', padding: '0.75rem 1rem', borderRadius: '10px', border: '1px solid rgba(0,0,0,0.02)' }}>
+              <div style={{ fontWeight: 600, color: 'var(--text-main)', fontSize: '0.95rem', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
                 {member.name}
               </div>
-              <div>
+              <div style={{ position: 'relative' }}>
+                <span style={{ position: 'absolute', left: '1rem', top: '50%', transform: 'translateY(-50%)', color: 'var(--text-muted)', fontWeight: 600, fontSize: '0.9rem' }}>৳</span>
                 <input 
                   type="number" 
                   step="any"
@@ -182,7 +183,7 @@ export default function RoomRentsPage() {
                   value={rentData[member.id] || ''}
                   onChange={(e) => handleInputChange(member.id, e.target.value)}
                   className="glass-input"
-                  style={{ width: '100%', textAlign: 'center', padding: '0.5rem', fontSize: '1rem', background: 'white' }}
+                  style={{ width: '100%', textAlign: 'right', padding: '0.6rem 1rem 0.6rem 2.5rem', fontSize: '1rem', background: '#fff', border: '1px solid #e2e8f0', borderRadius: '8px' }}
                   placeholder="0"
                 />
               </div>
@@ -194,13 +195,15 @@ export default function RoomRentsPage() {
         </div>
       </div>
 
-      <button 
-        onClick={handleSaveAll}
-        className="btn btn-primary submit-btn" 
-        style={{ width: '100%', padding: '1rem', fontSize: '1.1rem', borderRadius: '12px', display: 'flex', justifyContent: 'center', gap: '0.5rem', boxShadow: '0 8px 20px rgba(12, 173, 121, 0.3)' }}
-      >
-        <Save size={20} /> Save Room Rents
-      </button>
+      <div style={{ display: 'flex', justifyContent: 'flex-end' }}>
+        <button 
+          onClick={handleSaveAll}
+          className="btn btn-primary submit-btn" 
+          style={{ padding: '0.8rem 2rem', fontSize: '1rem', borderRadius: '12px', display: 'flex', alignItems: 'center', gap: '0.5rem', boxShadow: '0 8px 20px rgba(12, 173, 121, 0.3)' }}
+        >
+          <Save size={18} /> Save Rents
+        </button>
+      </div>
 
     </div>
   )
