@@ -236,7 +236,7 @@ export default function MemberProfilePage({ params }: { params: Promise<{ id: st
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1rem' }}>
                 <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', color: '#8b5cf6' }}>
                   <Receipt size={18} />
-                  <span style={{ fontWeight: 600 }}>Others (৳ {Number(analytics.member.totalFixedExpensesPaid).toFixed(2)})</span>
+                  <span style={{ fontWeight: 600 }}>Others (৳ {(Number(analytics.member.memberRoomRentCost) + Number(analytics.member.memberPaidFixedCost)).toFixed(2)})</span>
                 </div>
               </div>
               <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
