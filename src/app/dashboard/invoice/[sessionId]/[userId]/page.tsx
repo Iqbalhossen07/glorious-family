@@ -52,9 +52,12 @@ export default function InvoicePage() {
         const currentSettlement = settlementsData.find(s => s.user_id === userId)
         setSettlement(currentSettlement)
 
+        const allOtherExpenses = fixedData.filter(f => f.item_name !== 'Room Rent')
+        const roomRentsData = fixedData.filter(f => f.item_name === 'Room Rent')
+
         const tMeals = mealsData.reduce((sum, m) => sum + Number(m.meal_count), 0)
         const tBazar = bazarData.reduce((sum, b) => sum + Number(b.amount), 0)
-        const tFixed = fixedData.reduce((sum, f) => sum + Number(f.amount), 0)
+        const tFixed = allOtherExpenses.reduce((sum, f) => sum + Number(f.amount), 0)
         const activeMembersCount = members.length
         
         const mRate = tMeals > 0 ? (tBazar / tMeals) : 0
@@ -71,16 +74,18 @@ export default function InvoicePage() {
         const memberMeals = mealsData.filter(m => m.user_id === userId).reduce((sum, m) => sum + Number(m.meal_count), 0)
         const memberDeposits = depositsData.filter(d => d.user_id === userId).reduce((sum, d) => sum + Number(d.amount), 0)
         const memberBazar = bazarData.filter(b => b.user_id === userId).reduce((sum, b) => sum + Number(b.amount), 0)
-        const memberPaidFixed = fixedData.filter(f => f.user_id === userId).reduce((sum, f) => sum + Number(f.amount), 0)
+        const memberPaidFixed = allOtherExpenses.filter(f => f.user_id === userId).reduce((sum, f) => sum + Number(f.amount), 0)
+        const memberRoomRent = roomRentsData.filter(f => f.user_id === userId).reduce((sum, f) => sum + Number(f.amount), 0)
         
         const mealCost = memberMeals * mRate
-        const totalCost = mealCost + fixedCostPerMember
+        const totalCost = mealCost + fixedCostPerMember + memberRoomRent
         const totalPaid = memberDeposits + memberBazar + memberPaidFixed
 
         setStats({
           totalMeals: memberMeals,
           mealCost: mealCost,
           fixedCost: fixedCostPerMember,
+          roomRent: memberRoomRent,
           totalCost: totalCost,
           cashDeposit: memberDeposits,
           bazarPaid: memberBazar,
@@ -239,20 +244,27 @@ export default function InvoicePage() {
               
               <tr style={{ background: '#f8fafc', borderBottom: '1px solid #e2e8f0' }}>
                 <td style={{ padding: '0.8rem 0.5rem', textAlign: 'center', color: '#000' }}>3</td>
+                <td style={{ padding: '0.8rem 0.5rem', color: '#000', fontWeight: 500 }}>Room Rent</td>
+                <td style={{ padding: '0.8rem 0.5rem', textAlign: 'center', color: '#000' }}>Personal</td>
+                <td style={{ padding: '0.8rem 0.5rem', textAlign: 'right', color: '#000' }}>{Number(stats.roomRent || 0).toFixed(2)}</td>
+              </tr>
+              
+              <tr style={{ background: '#fff', borderBottom: '1px solid #e2e8f0' }}>
+                <td style={{ padding: '0.8rem 0.5rem', textAlign: 'center', color: '#000' }}>4</td>
                 <td style={{ padding: '0.8rem 0.5rem', color: '#000', fontWeight: 500 }}>Cash Deposits (Negative)</td>
                 <td style={{ padding: '0.8rem 0.5rem', textAlign: 'center', color: '#000' }}>Given to Manager</td>
                 <td style={{ padding: '0.8rem 0.5rem', textAlign: 'right', color: '#ef4444' }}>-{Number(stats.cashDeposit).toFixed(2)}</td>
               </tr>
               
-              <tr style={{ background: '#fff', borderBottom: '1px solid #e2e8f0' }}>
-                <td style={{ padding: '0.8rem 0.5rem', textAlign: 'center', color: '#000' }}>4</td>
+              <tr style={{ background: '#f8fafc', borderBottom: '1px solid #e2e8f0' }}>
+                <td style={{ padding: '0.8rem 0.5rem', textAlign: 'center', color: '#000' }}>5</td>
                 <td style={{ padding: '0.8rem 0.5rem', color: '#000', fontWeight: 500 }}>Bazar Paid by Member</td>
                 <td style={{ padding: '0.8rem 0.5rem', textAlign: 'center', color: '#000' }}>Out-of-pocket</td>
                 <td style={{ padding: '0.8rem 0.5rem', textAlign: 'right', color: '#ef4444' }}>-{Number(stats.bazarPaid).toFixed(2)}</td>
               </tr>
               
-              <tr style={{ background: '#f8fafc', borderBottom: '1px solid #e2e8f0' }}>
-                <td style={{ padding: '0.8rem 0.5rem', textAlign: 'center', color: '#000' }}>5</td>
+              <tr style={{ background: '#fff', borderBottom: '1px solid #e2e8f0' }}>
+                <td style={{ padding: '0.8rem 0.5rem', textAlign: 'center', color: '#000' }}>6</td>
                 <td style={{ padding: '0.8rem 0.5rem', color: '#000', fontWeight: 500 }}>Fixed Expenses Paid</td>
                 <td style={{ padding: '0.8rem 0.5rem', textAlign: 'center', color: '#000' }}>Out-of-pocket</td>
                 <td style={{ padding: '0.8rem 0.5rem', textAlign: 'right', color: '#ef4444' }}>-{Number(stats.fixedPaid).toFixed(2)}</td>
