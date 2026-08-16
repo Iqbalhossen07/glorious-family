@@ -212,7 +212,7 @@ body {
   margin-left: 260px;
   flex: 1;
   padding: 2rem 3rem;
-  width: 100%;
+  min-width: 0;
 }
 
 .stats-grid {
