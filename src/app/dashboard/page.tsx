@@ -215,7 +215,8 @@ export default function DashboardPage() {
   const mealRate = totalMeals > 0 ? (totalBazar / totalMeals).toFixed(2) : '0.00'
   
   // Manager Balance = (Total Cash Given to Manager as Deposits) - (Total Room Rents Paid to House Owner) - (Total Fixed Expenses Paid by Manager/Mess Fund)
-  const managerBalance = totalDeposit - messFundFixedCost - totalRoomRent
+  let managerBalance = totalDeposit - messFundFixedCost - totalRoomRent
+  if (Math.abs(managerBalance) < 0.05) managerBalance = 0
   
   const perPersonFixedCost = memberStats.length > 0 ? (totalFixedCost / memberStats.length).toFixed(2) : '0.00'
 
