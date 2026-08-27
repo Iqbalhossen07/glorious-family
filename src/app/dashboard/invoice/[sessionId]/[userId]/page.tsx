@@ -1,7 +1,7 @@
 'use client'
 import { useEffect, useState } from 'react'
 import { useParams, useRouter } from 'next/navigation'
-import { ArrowLeft, Download, User, Share2 } from 'lucide-react'
+import { ArrowLeft, Download, User } from 'lucide-react'
 import { SessionService } from '@/services/session.service'
 import { MemberService } from '@/services/member.service'
 import { MealService } from '@/services/meal.service'
@@ -118,24 +118,6 @@ export default function InvoicePage() {
   const isDue = settlement?.type === 'receivable'
   const settleType = isDue ? 'Due (Payable to Mess)' : 'Refund (Payable to Member)'
 
-  const handleShare = async () => {
-    const url = window.location.href
-    if (navigator.share) {
-      try {
-        await navigator.share({
-          title: 'Glorious Family Invoice',
-          text: `Check out the mess invoice for ${member.name} - ${session.session_name}`,
-          url: url,
-        })
-      } catch (error) {
-        console.log('Error sharing', error)
-      }
-    } else {
-      navigator.clipboard.writeText(url)
-      alert('Link copied to clipboard! You can paste and share it anywhere.')
-    }
-  }
-
   const [isDownloading, setIsDownloading] = useState(false)
 
   const handleDownload = async () => {
@@ -175,9 +157,6 @@ export default function InvoicePage() {
         <div style={{ display: 'flex', gap: '1rem', flexWrap: 'wrap' }}>
           <button onClick={() => router.push(`/dashboard/members/${userId}`)} className="btn hide-on-mobile" style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', background: '#fff', border: '1px solid var(--primary)', color: 'var(--primary)', padding: '0.5rem 1rem', borderRadius: '8px', cursor: 'pointer', fontWeight: 600 }}>
             <User size={16} /> Member Details
-          </button>
-          <button onClick={handleShare} className="btn" style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', background: '#e0f2fe', border: '1px solid #38bdf8', color: '#0284c7', padding: '0.5rem 1rem', borderRadius: '8px', cursor: 'pointer', fontWeight: 600 }}>
-            <Share2 size={16} /> Share
           </button>
           <button onClick={handleDownload} disabled={isDownloading} className="btn btn-primary submit-btn" style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', background: 'var(--primary)', border: 'none', opacity: isDownloading ? 0.7 : 1 }}>
             <Download size={16} /> {isDownloading ? 'Downloading...' : 'Download Receipt'}
