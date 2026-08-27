@@ -3,6 +3,7 @@ import { useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { Save, ArrowLeft, Type, AlignLeft } from 'lucide-react'
 import { MessInfoService } from '@/services/mess_info.service'
+import { AuthService } from '@/services/auth.service'
 import Swal from 'sweetalert2'
 
 export default function AddMessInfoPage() {
@@ -21,9 +22,11 @@ export default function AddMessInfoPage() {
 
     try {
       Swal.showLoading()
-      const userId = localStorage.getItem('currentUser')
+      const session = await AuthService.getSession()
+      const userId = session?.user?.id
+      
       if (!userId) {
-        throw new Error('Please select a member profile first.')
+        throw new Error('Please select a member profile first (User not found).')
       }
       await MessInfoService.addInfo(title, description, userId)
       await Swal.fire('Success!', 'Info added successfully.', 'success')
