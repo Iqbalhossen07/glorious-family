@@ -151,11 +151,11 @@ export default function InvoicePage() {
     <div style={{ background: '#f1f5f9', minHeight: '100vh', padding: '1rem' }} className="invoice-container">
       
       {/* Controls */}
-      <div className="hide-on-print" style={{ maxWidth: '800px', margin: '0 auto 1rem', display: 'flex', justifyContent: 'space-between' }}>
+      <div className="hide-on-print" style={{ maxWidth: '800px', margin: '0 auto 1rem', display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '1rem' }}>
         <button onClick={() => router.back()} className="btn" style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', background: '#fff', border: '1px solid var(--primary)', color: 'var(--primary)', padding: '0.5rem 1rem', borderRadius: '8px', cursor: 'pointer', fontWeight: 600 }}>
           <ArrowLeft size={16} /> Back
         </button>
-        <div style={{ display: 'flex', gap: '1rem', flexWrap: 'wrap' }}>
+        <div style={{ display: 'flex', gap: '0.75rem', flexWrap: 'wrap', alignItems: 'center' }}>
           <button onClick={() => router.push(`/dashboard/members/${userId}`)} className="btn hide-on-mobile" style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', background: '#fff', border: '1px solid var(--primary)', color: 'var(--primary)', padding: '0.5rem 1rem', borderRadius: '8px', cursor: 'pointer', fontWeight: 600 }}>
             <User size={16} /> Member Details
           </button>
