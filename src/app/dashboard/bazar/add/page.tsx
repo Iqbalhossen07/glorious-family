@@ -26,6 +26,9 @@ export default function AddBazarPage() {
       try {
         const authSession = await AuthService.getSession()
         setUser(authSession?.user)
+        if (authSession?.user?.id) {
+          setUserId(authSession.user.id)
+        }
 
         const currentSession = await SessionService.getCurrentSession()
         setSession(currentSession)

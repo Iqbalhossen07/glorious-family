@@ -2,7 +2,7 @@
 import { useState, useEffect } from 'react'
 import Link from 'next/link'
 import { usePathname, useRouter } from 'next/navigation'
-import { Home, LayoutDashboard, Utensils, ShoppingCart, Users, Settings, LogOut, Menu, X, Wallet, FileText, ClipboardList, Activity, PieChart, Key } from 'lucide-react'
+import { Home, LayoutDashboard, Utensils, ShoppingCart, Users, Settings, LogOut, Menu, X, Wallet, FileText, ClipboardList, Activity, PieChart, Key, Banknote } from 'lucide-react'
 import { AuthService } from '@/services/auth.service'
 import Logo from './Logo'
 import Swal from 'sweetalert2'
@@ -44,6 +44,7 @@ export default function BottomNav() {
     { name: 'Others', path: '/dashboard/other-expenses', icon: <FileText size={16} />, color: '#8b5cf6' },
     { name: 'Info', path: '/dashboard/mess-info', icon: <ClipboardList size={16} />, color: '#ec4899' },
     { name: 'Summary', path: '/dashboard/summary', icon: <PieChart size={16} />, color: '#14b8a6' },
+    { name: 'Settlements', path: '/dashboard/settlements', icon: <Banknote size={16} />, color: '#8b5cf6' },
     { name: 'Activity', path: '/dashboard/activity-log', icon: <Activity size={16} />, color: '#f97316' },
     { name: 'Settings', path: '/dashboard/settings', icon: <Settings size={16} />, color: '#64748b' },
   ]
