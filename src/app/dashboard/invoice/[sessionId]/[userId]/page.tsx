@@ -2,8 +2,6 @@
 import { useEffect, useState } from 'react'
 import { useParams, useRouter } from 'next/navigation'
 import { ArrowLeft, Download, User, Share2 } from 'lucide-react'
-import html2canvas from 'html2canvas'
-import jsPDF from 'jspdf'
 import { SessionService } from '@/services/session.service'
 import { MemberService } from '@/services/member.service'
 import { MealService } from '@/services/meal.service'
@@ -146,6 +144,9 @@ export default function InvoicePage() {
     
     try {
       setIsDownloading(true)
+      const html2canvas = (await import('html2canvas')).default
+      const { jsPDF } = await import('jspdf')
+      
       const canvas = await html2canvas(element, { scale: 2, useCORS: true })
       const imgData = canvas.toDataURL('image/png')
       const pdf = new jsPDF('p', 'mm', 'a4')
