@@ -1,7 +1,9 @@
 'use client'
 import { useEffect, useState } from 'react'
 import { useParams, useRouter } from 'next/navigation'
-import { ArrowLeft, Printer, User, Share2 } from 'lucide-react'
+import { ArrowLeft, Download, User, Share2 } from 'lucide-react'
+import html2canvas from 'html2canvas'
+import jsPDF from 'jspdf'
 import { SessionService } from '@/services/session.service'
 import { MemberService } from '@/services/member.service'
 import { MealService } from '@/services/meal.service'
@@ -136,6 +138,31 @@ export default function InvoicePage() {
     }
   }
 
+  const [isDownloading, setIsDownloading] = useState(false)
+
+  const handleDownload = async () => {
+    const element = document.getElementById('invoice-capture')
+    if (!element) return
+    
+    try {
+      setIsDownloading(true)
+      const canvas = await html2canvas(element, { scale: 2, useCORS: true })
+      const imgData = canvas.toDataURL('image/png')
+      const pdf = new jsPDF('p', 'mm', 'a4')
+      
+      const pdfWidth = pdf.internal.pageSize.getWidth()
+      const pdfHeight = (canvas.height * pdfWidth) / canvas.width
+      
+      pdf.addImage(imgData, 'PNG', 0, 0, pdfWidth, pdfHeight)
+      pdf.save(`Invoice_${member.name}_${session.session_name}.pdf`)
+    } catch (error) {
+      console.error('Error generating PDF:', error)
+      alert('Failed to generate PDF. Please try again.')
+    } finally {
+      setIsDownloading(false)
+    }
+  }
+
   return (
     <div style={{ background: '#f1f5f9', minHeight: '100vh', padding: '1rem' }} className="invoice-container">
       
@@ -151,14 +178,14 @@ export default function InvoicePage() {
           <button onClick={handleShare} className="btn" style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', background: '#e0f2fe', border: '1px solid #38bdf8', color: '#0284c7', padding: '0.5rem 1rem', borderRadius: '8px', cursor: 'pointer', fontWeight: 600 }}>
             <Share2 size={16} /> Share
           </button>
-          <button onClick={() => window.print()} className="btn btn-primary submit-btn" style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', background: 'var(--primary)', border: 'none' }}>
-            <Printer size={16} /> Print PDF
+          <button onClick={handleDownload} disabled={isDownloading} className="btn btn-primary submit-btn" style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', background: 'var(--primary)', border: 'none', opacity: isDownloading ? 0.7 : 1 }}>
+            <Download size={16} /> {isDownloading ? 'Downloading...' : 'Download Receipt'}
           </button>
         </div>
       </div>
 
       {/* A4 Invoice Paper */}
-      <div className="invoice-paper" style={{ 
+      <div id="invoice-capture" className="invoice-paper" style={{ 
         maxWidth: '800px', 
         margin: '0 auto', 
         background: '#fff', 
