@@ -23,6 +23,7 @@ export default function InvoicePage() {
 
   const [stats, setStats] = useState<any>(null)
   const [globalStats, setGlobalStats] = useState<any>(null)
+  const [isDownloading, setIsDownloading] = useState(false)
 
   useEffect(() => {
     const loadInvoiceData = async () => {
@@ -118,7 +119,7 @@ export default function InvoicePage() {
   const isDue = settlement?.type === 'receivable'
   const settleType = isDue ? 'Due (Payable to Mess)' : 'Refund (Payable to Member)'
 
-  const [isDownloading, setIsDownloading] = useState(false)
+
 
   const handleDownload = async () => {
     const element = document.getElementById('invoice-capture')
