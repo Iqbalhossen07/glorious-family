@@ -1,7 +1,7 @@
 'use client'
 import { useEffect, useState } from 'react'
 import { useRouter } from 'next/navigation'
-import { Shield, Building, Users, AlertTriangle, CheckCircle, Ban } from 'lucide-react'
+import { Shield, Building, Users, AlertTriangle, CheckCircle, Ban, Trash2 } from 'lucide-react'
 import { AuthService } from '@/services/auth.service'
 import Swal from 'sweetalert2'
 
@@ -75,7 +75,49 @@ export default function SuperAdminPage() {
         Swal.fire('Success', `Mess ${actionText}d Successfully`, 'success')
         fetchMesses() // Reload data
       } catch (error: any) {
-        Swal.fire('Error', error.message, 'error')
+        Swal.fire('Error', error.message || 'Failed to update status', 'error')
+      }
+    }
+  }
+
+  const handleDeleteMess = async (messId: string, messName: string) => {
+    const { value: typedName } = await Swal.fire({
+      title: 'Delete Mess Permanently?',
+      text: `This action cannot be undone. All users, expenses, meals, and deposits for this mess will be destroyed. Type "${messName}" to confirm.`,
+      input: 'text',
+      icon: 'error',
+      showCancelButton: true,
+      confirmButtonColor: '#ef4444',
+      confirmButtonText: 'Permanently Delete',
+      inputValidator: (value) => {
+        if (value !== messName) {
+          return 'You must type the exact mess name to confirm!'
+        }
+      }
+    })
+
+    if (typedName === messName) {
+      try {
+        Swal.showLoading()
+        const res = await fetch(`/api/admin/messes?id=${messId}`, {
+          method: 'DELETE'
+        })
+        const data = await res.json()
+        
+        if (data.error) throw new Error(data.error)
+
+        await fetchMesses()
+        Swal.fire({
+          icon: 'success',
+          title: 'Deleted!',
+          text: 'The mess has been completely removed from the database.',
+          toast: true,
+          position: 'top-end',
+          showConfirmButton: false,
+          timer: 3000
+        })
+      } catch (error: any) {
+        Swal.fire('Error', error.message || 'Failed to delete mess', 'error')
       }
     }
   }
@@ -179,13 +221,23 @@ export default function SuperAdminPage() {
                     )}
                   </td>
                   <td style={{ padding: '1rem 1.5rem', textAlign: 'right' }}>
-                    <button 
-                      onClick={() => handleToggleStatus(mess.id, mess.is_active, mess.name)}
-                      className={mess.is_active ? "btn btn-outline" : "btn btn-primary"}
-                      style={{ padding: '0.5rem 1.25rem', fontSize: '0.85rem' }}
-                    >
-                      {mess.is_active ? 'Suspend' : 'Activate'}
-                    </button>
+                    <div style={{ display: 'flex', gap: '0.5rem', justifyContent: 'flex-end' }}>
+                      <button 
+                        onClick={() => handleToggleStatus(mess.id, mess.is_active, mess.name)}
+                        className={mess.is_active ? "btn btn-outline" : "btn btn-primary"}
+                        style={{ padding: '0.5rem 1.25rem', fontSize: '0.85rem' }}
+                      >
+                        {mess.is_active ? 'Suspend' : 'Activate'}
+                      </button>
+                      <button 
+                        onClick={() => handleDeleteMess(mess.id, mess.name)}
+                        className="btn"
+                        style={{ padding: '0.5rem', fontSize: '0.85rem', background: 'rgba(239, 68, 68, 0.1)', color: '#ef4444', border: '1px solid rgba(239, 68, 68, 0.2)' }}
+                        title="Delete Mess"
+                      >
+                        <Trash2 size={16} />
+                      </button>
+                    </div>
                   </td>
                 </tr>
               ))}

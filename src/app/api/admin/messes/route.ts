@@ -51,3 +51,26 @@ export async function PATCH(request: Request) {
     return NextResponse.json({ error: error.message }, { status: 500 })
   }
 }
+
+export async function DELETE(request: Request) {
+  try {
+    const { searchParams } = new URL(request.url)
+    const messId = searchParams.get('id')
+    
+    if (!messId) throw new Error("Mess ID is required")
+
+    // Optional: Delete all members' auth accounts first if we want to completely remove them.
+    // For now, let's just delete the mess row, which should CASCADE to everything else 
+    // including users if the FK is ON DELETE CASCADE.
+    
+    const { error } = await supabaseAdmin
+      .from('messes')
+      .delete()
+      .eq('id', messId)
+
+    if (error) throw new Error(error.message)
+    return NextResponse.json({ success: true })
+  } catch (error: any) {
+    return NextResponse.json({ error: error.message }, { status: 500 })
+  }
+}
