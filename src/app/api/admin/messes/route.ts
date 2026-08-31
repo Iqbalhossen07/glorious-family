@@ -59,10 +59,26 @@ export async function DELETE(request: Request) {
     
     if (!messId) throw new Error("Mess ID is required")
 
-    // Optional: Delete all members' auth accounts first if we want to completely remove them.
-    // For now, let's just delete the mess row, which should CASCADE to everything else 
-    // including users if the FK is ON DELETE CASCADE.
-    
+    // We must manually delete all related records because the foreign keys 
+    // don't have ON DELETE CASCADE setup.
+
+    // 1. Delete all expenses, meals, deposits, etc.
+    const tablesToDelete = [
+      'bazar_expenses',
+      'other_expenses',
+      'meals',
+      'deposits',
+      'mess_info',
+      'settlements',
+      'room_rents',
+      'users'
+    ]
+
+    for (const table of tablesToDelete) {
+      await supabaseAdmin.from(table).delete().eq('mess_id', messId)
+    }
+
+    // 2. Finally, delete the mess itself
     const { error } = await supabaseAdmin
       .from('messes')
       .delete()
