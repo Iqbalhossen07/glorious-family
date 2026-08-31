@@ -65,7 +65,7 @@ export default function MembersPage() {
         const response = await fetch('/api/add-member', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify(formValues)
+          body: JSON.stringify({ ...formValues, messId: currentUser?.mess_id })
         })
         
         const data = await response.json()

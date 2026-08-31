@@ -3,10 +3,10 @@ import { supabaseAdmin } from '@/lib/supabaseAdmin'
 
 export async function POST(request: Request) {
   try {
-    const { name, email, password } = await request.json()
+    const { name, email, password, messId } = await request.json()
 
-    if (!name || !email || !password) {
-      return NextResponse.json({ error: 'Name, email, and password are required' }, { status: 400 })
+    if (!name || !email || !password || !messId) {
+      return NextResponse.json({ error: 'Name, email, password, and messId are required' }, { status: 400 })
     }
 
     // 1. Create the user in Supabase Auth using Admin API (does not log out the current user)
@@ -28,7 +28,8 @@ export async function POST(request: Request) {
           id: authData.user.id, 
           name: name, 
           email: email, 
-          role: 'member'
+          role: 'member',
+          mess_id: messId
         }
       ])
 
