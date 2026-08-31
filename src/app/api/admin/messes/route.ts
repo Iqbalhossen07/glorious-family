@@ -62,8 +62,23 @@ export async function DELETE(request: Request) {
     // We must manually delete all related records because the foreign keys 
     // don't have ON DELETE CASCADE setup.
 
+    // Get all users in this mess to clean up their activity logs
+    const { data: messUsers } = await supabaseAdmin
+      .from('users')
+      .select('id')
+      .eq('mess_id', messId)
+
+    if (messUsers && messUsers.length > 0) {
+      const userIds = messUsers.map(u => u.id)
+      await supabaseAdmin.from('activity_logs').delete().in('user_id', userIds)
+    }
+
+    // Also delete any activity logs directly tied to this mess
+    await supabaseAdmin.from('activity_logs').delete().eq('mess_id', messId)
+
     // 1. Delete all expenses, meals, deposits, etc.
     const tablesToDelete = [
+      'sessions', // MUST delete sessions before users because of created_by FK!
       'bazar_expenses',
       'other_expenses',
       'meals',
@@ -75,7 +90,11 @@ export async function DELETE(request: Request) {
     ]
 
     for (const table of tablesToDelete) {
-      await supabaseAdmin.from(table).delete().eq('mess_id', messId)
+      try {
+        await supabaseAdmin.from(table).delete().eq('mess_id', messId)
+      } catch (e) {
+        console.log(\`Skipping \${table}: \${e}\`)
+      }
     }
 
     // 2. Finally, delete the mess itself
