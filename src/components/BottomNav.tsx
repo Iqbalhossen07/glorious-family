@@ -2,7 +2,7 @@
 import { useState, useEffect } from 'react'
 import Link from 'next/link'
 import { usePathname, useRouter } from 'next/navigation'
-import { Home, LayoutDashboard, Utensils, ShoppingCart, Users, Settings, LogOut, Menu, X, Wallet, FileText, ClipboardList, Activity, PieChart, Key, Banknote } from 'lucide-react'
+import { Home, LayoutDashboard, Utensils, ShoppingCart, Users, Settings, LogOut, Menu, X, Wallet, FileText, ClipboardList, Activity, PieChart, Key, Banknote, Globe } from 'lucide-react'
 import { AuthService } from '@/services/auth.service'
 import Logo from './Logo'
 import Swal from 'sweetalert2'
@@ -34,23 +34,30 @@ export default function BottomNav() {
   }
 
   // All nav items with their unique colors
-  const allItems = [
-    { name: 'Home', path: '/dashboard', icon: <Home size={16} />, color: '#3b82f6' },
-    { name: 'Members', path: '/dashboard/members', icon: <Users size={16} />, color: '#f43f5e' },
-    { name: 'Room Rents', path: '/dashboard/room-rents', icon: <Key size={16} />, color: '#f59e0b' },
-    { name: 'Bazar', path: '/dashboard/bazar', icon: <ShoppingCart size={16} />, color: '#10b981' },
-    { name: 'Meals', path: '/dashboard/meals', icon: <Utensils size={16} />, color: '#f59e0b' },
-    { name: 'Deposits', path: '/dashboard/deposits', icon: <Wallet size={16} />, color: '#0ea5e9' },
-    { name: 'Others', path: '/dashboard/other-expenses', icon: <FileText size={16} />, color: '#8b5cf6' },
-    { name: 'Info', path: '/dashboard/mess-info', icon: <ClipboardList size={16} />, color: '#ec4899' },
-    { name: 'Summary', path: '/dashboard/summary', icon: <PieChart size={16} />, color: '#14b8a6' },
-    { name: 'Settlements', path: '/dashboard/settlements', icon: <Banknote size={16} />, color: '#8b5cf6' },
-    { name: 'Activity', path: '/dashboard/activity-log', icon: <Activity size={16} />, color: '#f97316' },
-    { name: 'Settings', path: '/dashboard/settings', icon: <Settings size={16} />, color: '#64748b' },
-  ]
+  const isAdmin = pathname.startsWith('/admin')
 
-  // Only these 5 appear on the sticky bottom bar
-  const stickyPaths = ['/dashboard', '/dashboard/other-expenses', '/dashboard/members', '/dashboard/meals', '/dashboard/bazar']
+  const allItems = isAdmin 
+    ? [
+        { name: 'Dashboard', path: '/admin/dashboard', icon: <LayoutDashboard size={16} />, color: '#ef4444' },
+        { name: 'Analytics', path: '/admin/analytics', icon: <Globe size={16} />, color: '#3b82f6' },
+      ]
+    : [
+        { name: 'Home', path: '/dashboard', icon: <Home size={16} />, color: '#3b82f6' },
+        { name: 'Members', path: '/dashboard/members', icon: <Users size={16} />, color: '#f43f5e' },
+        { name: 'Room Rents', path: '/dashboard/room-rents', icon: <Key size={16} />, color: '#f59e0b' },
+        { name: 'Bazar', path: '/dashboard/bazar', icon: <ShoppingCart size={16} />, color: '#10b981' },
+        { name: 'Meals', path: '/dashboard/meals', icon: <Utensils size={16} />, color: '#f59e0b' },
+        { name: 'Deposits', path: '/dashboard/deposits', icon: <Wallet size={16} />, color: '#0ea5e9' },
+        { name: 'Others', path: '/dashboard/other-expenses', icon: <FileText size={16} />, color: '#8b5cf6' },
+        { name: 'Info', path: '/dashboard/mess-info', icon: <ClipboardList size={16} />, color: '#ec4899' },
+        { name: 'Summary', path: '/dashboard/summary', icon: <PieChart size={16} />, color: '#14b8a6' },
+        { name: 'Settlements', path: '/dashboard/settlements', icon: <Banknote size={16} />, color: '#8b5cf6' },
+        { name: 'Activity', path: '/dashboard/activity-log', icon: <Activity size={16} />, color: '#f97316' },
+        { name: 'Settings', path: '/dashboard/settings', icon: <Settings size={16} />, color: '#64748b' },
+      ]
+
+  // Only these appear on the sticky bottom bar
+  const stickyPaths = isAdmin ? ['/admin/dashboard', '/admin/analytics'] : ['/dashboard', '/dashboard/other-expenses', '/dashboard/members', '/dashboard/meals', '/dashboard/bazar']
   const stickyItems = allItems.filter(item => stickyPaths.includes(item.path))
 
   return (
