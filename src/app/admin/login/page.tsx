@@ -2,12 +2,13 @@
 
 import { useState } from 'react'
 import { useRouter } from 'next/navigation'
-import { Shield, Mail, Lock } from 'lucide-react'
+import { Shield, Mail, Lock, Eye, EyeOff } from 'lucide-react'
 import { AuthService } from '@/services/auth.service'
 
 export default function AdminLoginPage() {
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
+  const [showPassword, setShowPassword] = useState(false)
   const [error, setError] = useState('')
   const [loading, setLoading] = useState(false)
   const router = useRouter()
@@ -70,17 +71,24 @@ export default function AdminLoginPage() {
 
           <div className="input-group" style={{ marginBottom: 0 }}>
             <label className="input-label" style={{ fontSize: '0.85rem' }}>Password</label>
-            <div style={{ display: 'flex', alignItems: 'center', borderRadius: '12px', background: 'var(--bg-main)', padding: '0 1rem', border: '1px solid rgba(0,0,0,0.05)' }}>
+            <div style={{ display: 'flex', alignItems: 'center', borderRadius: '12px', background: 'var(--bg-main)', padding: '0 1rem', border: '1px solid rgba(0,0,0,0.05)', position: 'relative' }}>
               <Lock size={18} color="var(--text-muted)" />
               <input 
-                type="password" 
+                type={showPassword ? 'text' : 'password'} 
                 className="input-field"
                 value={password} 
                 onChange={(e) => setPassword(e.target.value)}
                 placeholder="Enter password"
                 required
-                style={{ border: 'none', boxShadow: 'none', background: 'transparent' }}
+                style={{ border: 'none', boxShadow: 'none', background: 'transparent', paddingRight: '2.5rem' }}
               />
+              <button 
+                type="button"
+                onClick={() => setShowPassword(!showPassword)}
+                style={{ position: 'absolute', right: '1rem', background: 'none', border: 'none', cursor: 'pointer', display: 'flex', alignItems: 'center' }}
+              >
+                {showPassword ? <EyeOff size={18} color="var(--text-muted)" /> : <Eye size={18} color="var(--text-muted)" />}
+              </button>
             </div>
           </div>
 
