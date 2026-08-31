@@ -93,7 +93,7 @@ export async function DELETE(request: Request) {
       try {
         await supabaseAdmin.from(table).delete().eq('mess_id', messId)
       } catch (e) {
-        console.log(\`Skipping \${table}: \${e}\`)
+        console.log(`Skipping ${table}: ${e}`)
       }
     }
 
