@@ -1,5 +1,6 @@
 'use client'
 import { useEffect, useState } from 'react'
+import { useRouter } from 'next/navigation'
 import { Shield, Building, Users, AlertTriangle, CheckCircle, Ban } from 'lucide-react'
 import { AuthService } from '@/services/auth.service'
 import Swal from 'sweetalert2'
@@ -8,6 +9,8 @@ export default function SuperAdminPage() {
   const [loading, setLoading] = useState(true)
   const [messes, setMesses] = useState<any[]>([])
   const [isAuthorized, setIsAuthorized] = useState(false)
+
+  const router = useRouter()
 
   useEffect(() => {
     checkAccessAndLoadData()
@@ -21,12 +24,11 @@ export default function SuperAdminPage() {
         setIsAuthorized(true)
         await fetchMesses()
       } else {
-        setIsAuthorized(false)
-        setLoading(false)
+        router.push('/admin/login')
       }
     } catch (error) {
       console.error(error)
-      setLoading(false)
+      router.push('/admin/login')
     }
   }
 

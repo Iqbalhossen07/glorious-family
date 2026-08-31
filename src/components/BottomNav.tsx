@@ -2,7 +2,7 @@
 import { useState, useEffect } from 'react'
 import Link from 'next/link'
 import { usePathname, useRouter } from 'next/navigation'
-import { Home, LayoutDashboard, Utensils, ShoppingCart, Users, Settings, LogOut, Menu, X, Wallet, FileText, ClipboardList, Activity, PieChart, Key, Banknote, Shield } from 'lucide-react'
+import { Home, LayoutDashboard, Utensils, ShoppingCart, Users, Settings, LogOut, Menu, X, Wallet, FileText, ClipboardList, Activity, PieChart, Key, Banknote } from 'lucide-react'
 import { AuthService } from '@/services/auth.service'
 import Logo from './Logo'
 import Swal from 'sweetalert2'
@@ -11,18 +11,11 @@ export default function BottomNav() {
   const pathname = usePathname()
   const router = useRouter()
   const [menuOpen, setMenuOpen] = useState(false)
-  const [isSuperAdmin, setIsSuperAdmin] = useState(false)
 
   // Close menu when route changes
   useEffect(() => {
     setMenuOpen(false)
   }, [pathname])
-
-  useEffect(() => {
-    AuthService.getCurrentUser().then(user => {
-      if (user?.email === 'iqbalhossen0711@gmail.com') setIsSuperAdmin(true)
-    })
-  }, [])
 
   const handleLogout = async () => {
     try {
@@ -55,10 +48,6 @@ export default function BottomNav() {
     { name: 'Activity', path: '/dashboard/activity-log', icon: <Activity size={16} />, color: '#f97316' },
     { name: 'Settings', path: '/dashboard/settings', icon: <Settings size={16} />, color: '#64748b' },
   ]
-
-  if (isSuperAdmin) {
-    allItems.push({ name: 'Super Admin', path: '/dashboard/super-admin', icon: <Shield size={16} />, color: '#ef4444' })
-  }
 
   // Only these 5 appear on the sticky bottom bar
   const stickyPaths = ['/dashboard', '/dashboard/other-expenses', '/dashboard/members', '/dashboard/meals', '/dashboard/bazar']
