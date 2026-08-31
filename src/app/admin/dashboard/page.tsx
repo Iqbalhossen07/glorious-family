@@ -81,22 +81,23 @@ export default function SuperAdminPage() {
   }
 
   const handleDeleteMess = async (messId: string, messName: string) => {
+    const cleanName = messName.trim()
     const { value: typedName } = await Swal.fire({
       title: 'Delete Mess Permanently?',
-      text: `This action cannot be undone. All users, expenses, meals, and deposits for this mess will be destroyed. Type "${messName}" to confirm.`,
+      text: `This action cannot be undone. All users, expenses, meals, and deposits for this mess will be destroyed. Type "${cleanName}" to confirm.`,
       input: 'text',
       icon: 'error',
       showCancelButton: true,
       confirmButtonColor: '#ef4444',
       confirmButtonText: 'Permanently Delete',
       inputValidator: (value) => {
-        if (value !== messName) {
+        if (value?.trim() !== cleanName) {
           return 'You must type the exact mess name to confirm!'
         }
       }
     })
 
-    if (typedName === messName) {
+    if (typedName?.trim() === cleanName) {
       try {
         Swal.showLoading()
         const res = await fetch(`/api/admin/messes?id=${messId}`, {
