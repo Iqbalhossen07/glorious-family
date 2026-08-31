@@ -3,7 +3,7 @@ import { useState, useRef } from 'react'
 import { Camera, Loader2 } from 'lucide-react'
 import imageCompression from 'browser-image-compression'
 import Swal from 'sweetalert2'
-import { AuthService } from '@/services/auth.service'
+import { supabase } from '@/lib/supabase'
 
 export default function AvatarUpload({ currentUrl, onUploadSuccess, userName }: { currentUrl?: string, onUploadSuccess: (url: string) => void, userName: string }) {
   const [loading, setLoading] = useState(false)
@@ -51,7 +51,7 @@ export default function AvatarUpload({ currentUrl, onUploadSuccess, userName }: 
       setPreview(uploadedUrl)
 
       // 4. Update Supabase Auth user_metadata
-      await AuthService.updateUser({
+      await supabase.auth.updateUser({
         data: { avatar_url: uploadedUrl }
       })
 
