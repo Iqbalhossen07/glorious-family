@@ -11,8 +11,12 @@ export default function AuthGuard({ children }: { children: React.ReactNode }) {
   useEffect(() => {
     const checkAuth = async () => {
       try {
-        const session = await AuthService.getSession()
-        if (session) {
+        const user = await AuthService.getCurrentUser()
+        if (user) {
+          if (!user.mess_id) {
+            router.push('/onboarding')
+            return
+          }
           setIsAuthenticated(true)
         } else {
           router.push('/login')

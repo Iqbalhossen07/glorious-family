@@ -84,6 +84,23 @@ export const AuthService = {
     return data.session
   },
 
+  /**
+   * Get current user profile with mess info
+   */
+  async getCurrentUser() {
+    const session = await this.getSession()
+    if (!session?.user) return null
+    
+    const { data, error } = await supabase
+      .from('users')
+      .select('*, messes(*)')
+      .eq('id', session.user.id)
+      .single()
+      
+    if (error) throw new Error(error.message)
+    return data
+  },
+
   async updateProfile(userId: string, name: string, email: string) {
     const response = await fetch('/api/update-profile', {
       method: 'POST',
