@@ -1,11 +1,16 @@
 import { supabase } from '@/lib/supabase'
 import { ActivityService } from './activity.service'
+import { AuthService } from './auth.service'
 
 export const MemberService = {
   async getAllMembers() {
+    const currentUser = await AuthService.getCurrentUser()
+    if (!currentUser || !currentUser.mess_id) return []
+
     const { data, error } = await supabase
       .from('users')
       .select('*')
+      .eq('mess_id', currentUser.mess_id)
       .order('created_at', { ascending: true })
       
     if (error) {
