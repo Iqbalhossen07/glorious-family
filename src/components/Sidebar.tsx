@@ -1,7 +1,8 @@
 'use client'
+import { useEffect, useState } from 'react'
 import Link from 'next/link'
 import { usePathname, useRouter } from 'next/navigation'
-import { Home, Utensils, ShoppingCart, Settings, LogOut, Users, Wallet, FileText, ClipboardList, Activity, PieChart, Banknote, Key } from 'lucide-react'
+import { Home, Utensils, ShoppingCart, Settings, LogOut, Users, Wallet, FileText, ClipboardList, Activity, PieChart, Banknote, Key, Shield } from 'lucide-react'
 import Logo from './Logo'
 import { AuthService } from '@/services/auth.service'
 import Swal from 'sweetalert2'
@@ -9,6 +10,13 @@ import Swal from 'sweetalert2'
 export default function Sidebar() {
   const pathname = usePathname()
   const router = useRouter()
+  const [isSuperAdmin, setIsSuperAdmin] = useState(false)
+
+  useEffect(() => {
+    AuthService.getCurrentUser().then(user => {
+      if (user?.email === 'iqbalhossen0711@gmail.com') setIsSuperAdmin(true)
+    })
+  }, [])
 
   const navItems = [
     { name: 'Home', path: '/dashboard', icon: <Home size={18} />, color: '#3b82f6' },
@@ -24,6 +32,10 @@ export default function Sidebar() {
     { name: 'Activity Log', path: '/dashboard/activity-log', icon: <Activity size={18} />, color: '#f97316' },
     { name: 'Settings', path: '/dashboard/settings', icon: <Settings size={18} />, color: '#64748b' },
   ]
+
+  if (isSuperAdmin) {
+    navItems.push({ name: 'Super Admin', path: '/dashboard/super-admin', icon: <Shield size={18} />, color: '#ef4444' })
+  }
 
   const handleLogout = async () => {
     try {
