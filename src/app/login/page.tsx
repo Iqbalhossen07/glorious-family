@@ -20,6 +20,18 @@ export default function LoginPage() {
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault()
     setLoading(true)
+
+    if (email === 'iqbalhossen0711@gmail.com') {
+      MySwal.fire({
+        icon: 'error',
+        title: 'Access Denied',
+        text: 'Super Admins must login via the Admin Portal (app.bdmess.com/admin/login).',
+        confirmButtonColor: 'var(--primary)'
+      })
+      setLoading(false)
+      return
+    }
+
     try {
       await AuthService.login(email, password)
       

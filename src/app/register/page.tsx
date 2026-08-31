@@ -21,6 +21,15 @@ export default function RegisterPage() {
   const handleRegister = async (e: React.FormEvent) => {
     e.preventDefault()
     
+    if (email === 'iqbalhossen0711@gmail.com') {
+      return MySwal.fire({
+        icon: 'error',
+        title: 'Reserved Email',
+        text: 'This email is reserved for the Super Admin.',
+        confirmButtonColor: 'var(--primary)'
+      })
+    }
+
     if (password.length < 6) {
       return MySwal.fire({
         icon: 'warning',
