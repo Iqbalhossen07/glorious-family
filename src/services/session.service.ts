@@ -1,10 +1,15 @@
 import { supabase } from '@/lib/supabase'
+import { AuthService } from './auth.service'
 
 export const SessionService = {
   async getCurrentSession() {
+    const user = await AuthService.getCurrentUser()
+    if (!user || !user.mess_id) return null
+
     const { data, error } = await supabase
       .from('sessions')
       .select('*')
+      .eq('mess_id', user.mess_id)
       .eq('status', 'open')
       .order('created_at', { ascending: false })
       .limit(1)
@@ -19,9 +24,13 @@ export const SessionService = {
   },
 
   async getLatestSession() {
+    const user = await AuthService.getCurrentUser()
+    if (!user || !user.mess_id) return null
+
     const { data, error } = await supabase
       .from('sessions')
       .select('*')
+      .eq('mess_id', user.mess_id)
       .order('created_at', { ascending: false })
       .limit(1)
       .single()
@@ -35,9 +44,13 @@ export const SessionService = {
   },
 
   async getAllSessions() {
+    const user = await AuthService.getCurrentUser()
+    if (!user || !user.mess_id) return []
+
     const { data, error } = await supabase
       .from('sessions')
       .select('*')
+      .eq('mess_id', user.mess_id)
       .order('created_at', { ascending: false })
       
     if (error) {
@@ -60,6 +73,9 @@ export const SessionService = {
   },
 
   async createSession(sessionName: string, userId: string) {
+    const user = await AuthService.getCurrentUser()
+    if (!user || !user.mess_id) throw new Error("No mess found for user")
+
     const { error } = await supabase
       .from('sessions')
       .insert([
@@ -67,7 +83,8 @@ export const SessionService = {
           session_name: sessionName, 
           start_date: new Date().toISOString().split('T')[0],
           status: 'open',
-          created_by: userId
+          created_by: userId,
+          mess_id: user.mess_id
         }
       ])
       
