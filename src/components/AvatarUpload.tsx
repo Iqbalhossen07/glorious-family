@@ -1,5 +1,5 @@
 'use client'
-import { useState, useRef } from 'react'
+import { useState, useRef, useEffect } from 'react'
 import { Camera, Loader2 } from 'lucide-react'
 import imageCompression from 'browser-image-compression'
 import Swal from 'sweetalert2'
@@ -9,6 +9,10 @@ export default function AvatarUpload({ currentUrl, onUploadSuccess, userName }: 
   const [loading, setLoading] = useState(false)
   const [preview, setPreview] = useState(currentUrl)
   const fileInputRef = useRef<HTMLInputElement>(null)
+
+  useEffect(() => {
+    if (currentUrl) setPreview(currentUrl)
+  }, [currentUrl])
 
   const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0]
