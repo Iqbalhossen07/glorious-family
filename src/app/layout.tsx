@@ -11,6 +11,8 @@ export const viewport = {
   themeColor: '#10b981',
 }
 
+import { Analytics } from '@vercel/analytics/react'
+
 export default function RootLayout({
   children,
 }: {
@@ -22,6 +24,7 @@ export default function RootLayout({
         <main className="container animate-fade-in">
           {children}
         </main>
+        <Analytics />
       </body>
     </html>
   )

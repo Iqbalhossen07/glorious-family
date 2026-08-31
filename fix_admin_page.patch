@@ -1,0 +1,87 @@
+--- src/app/admin/dashboard/page.tsx
++++ src/app/admin/dashboard/page.tsx
+@@ -98,15 +98,15 @@
+ 
+       {/* Stats Cards */}
+-      <div className="stats-grid" style={{ marginBottom: '2.5rem' }}>
+-        <div className="stat-card">
+-          <div className="stat-header">
+-            <span className="stat-title">Total Messes</span>
+-            <Building size={20} className="stat-icon" style={{ color: 'var(--primary)' }} />
++      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '1rem', marginBottom: '2.5rem' }}>
++        <div className="minimal-card" style={{ padding: '1.5rem', borderRadius: '16px' }}>
++          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '0.5rem' }}>
++            <span style={{ fontSize: '0.9rem', color: 'var(--text-muted)', fontWeight: 600 }}>Total Messes</span>
++            <Building size={20} style={{ color: 'var(--primary)' }} />
+           </div>
+-          <div className="stat-value">{totalMesses}</div>
+-          <div className="stat-desc" style={{ color: '#10b981' }}>{activeMesses} Active</div>
++          <div style={{ fontSize: '2rem', fontWeight: 800 }}>{totalMesses}</div>
++          <div style={{ fontSize: '0.85rem', color: '#10b981', fontWeight: 600, marginTop: '0.2rem' }}>{activeMesses} Active</div>
+         </div>
+ 
+-        <div className="stat-card">
+-          <div className="stat-header">
+-            <span className="stat-title">Total Users</span>
+-            <Users size={20} className="stat-icon" style={{ color: '#f59e0b' }} />
++        <div className="minimal-card" style={{ padding: '1.5rem', borderRadius: '16px' }}>
++          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '0.5rem' }}>
++            <span style={{ fontSize: '0.9rem', color: 'var(--text-muted)', fontWeight: 600 }}>Total Users</span>
++            <Users size={20} style={{ color: '#f59e0b' }} />
+           </div>
+-          <div className="stat-value">{totalUsers}</div>
+-          <div className="stat-desc">Across all messes</div>
++          <div style={{ fontSize: '2rem', fontWeight: 800 }}>{totalUsers}</div>
++          <div style={{ fontSize: '0.85rem', color: 'var(--text-muted)', marginTop: '0.2rem' }}>Across all messes</div>
+         </div>
+       </div>
+@@ -115,13 +115,13 @@
+       <h2 style={{ fontSize: '1.25rem', fontWeight: 700, marginBottom: '1rem' }}>All Registered Messes</h2>
+       
+-      <div className="card" style={{ padding: 0, overflow: 'hidden' }}>
++      <div className="minimal-card" style={{ padding: 0, overflow: 'hidden', borderRadius: '16px' }}>
+-        <div style={{ overflowX: 'auto' }}>
+-          <table style={{ width: '100%', borderCollapse: 'collapse', textAlign: 'left' }}>
++        <div style={{ overflowX: 'auto', WebkitOverflowScrolling: 'touch' }}>
++          <table style={{ width: '100%', borderCollapse: 'collapse', textAlign: 'left', minWidth: '600px' }}>
+             <thead>
+               <tr style={{ background: 'rgba(0,0,0,0.02)', borderBottom: '1px solid rgba(0,0,0,0.05)' }}>
+-                <th style={{ padding: '1rem', fontSize: '0.85rem', color: 'var(--text-muted)' }}>MESS DETAILS</th>
+-                <th style={{ padding: '1rem', fontSize: '0.85rem', color: 'var(--text-muted)' }}>MANAGER</th>
+-                <th style={{ padding: '1rem', fontSize: '0.85rem', color: 'var(--text-muted)', textAlign: 'center' }}>MEMBERS</th>
+-                <th style={{ padding: '1rem', fontSize: '0.85rem', color: 'var(--text-muted)', textAlign: 'center' }}>STATUS</th>
+-                <th style={{ padding: '1rem', fontSize: '0.85rem', color: 'var(--text-muted)', textAlign: 'right' }}>ACTION</th>
++                <th style={{ padding: '1rem 1.5rem', fontSize: '0.85rem', color: 'var(--text-muted)' }}>MESS DETAILS</th>
++                <th style={{ padding: '1rem 1.5rem', fontSize: '0.85rem', color: 'var(--text-muted)' }}>MANAGER</th>
++                <th style={{ padding: '1rem 1.5rem', fontSize: '0.85rem', color: 'var(--text-muted)', textAlign: 'center' }}>MEMBERS</th>
++                <th style={{ padding: '1rem 1.5rem', fontSize: '0.85rem', color: 'var(--text-muted)', textAlign: 'center' }}>STATUS</th>
++                <th style={{ padding: '1rem 1.5rem', fontSize: '0.85rem', color: 'var(--text-muted)', textAlign: 'right' }}>ACTION</th>
+               </tr>
+             </thead>
+             <tbody>
+               {messes.map((mess) => (
+                 <tr key={mess.id} style={{ borderBottom: '1px solid rgba(0,0,0,0.03)' }}>
+-                  <td style={{ padding: '1rem' }}>
++                  <td style={{ padding: '1rem 1.5rem' }}>
+                     <div style={{ fontWeight: 700, color: 'var(--text-main)', marginBottom: '0.2rem' }}>{mess.name}</div>
+                     <div style={{ fontSize: '0.8rem', color: 'var(--text-muted)' }}>Code: <strong>{mess.join_code}</strong></div>
+                   </td>
+-                  <td style={{ padding: '1rem' }}>
++                  <td style={{ padding: '1rem 1.5rem' }}>
+                     <div style={{ fontWeight: 600, fontSize: '0.9rem' }}>{mess.managerName}</div>
+                     <div style={{ fontSize: '0.8rem', color: 'var(--text-muted)' }}>{mess.managerEmail}</div>
+                   </td>
+-                  <td style={{ padding: '1rem', textAlign: 'center', fontWeight: 700 }}>
++                  <td style={{ padding: '1rem 1.5rem', textAlign: 'center', fontWeight: 700 }}>
+                     {mess.memberCount}
+                   </td>
+-                  <td style={{ padding: '1rem', textAlign: 'center' }}>
++                  <td style={{ padding: '1rem 1.5rem', textAlign: 'center' }}>
+                     {mess.is_active ? (
+                       <span style={{ display: 'inline-flex', alignItems: 'center', gap: '0.3rem', background: 'rgba(16, 185, 129, 0.1)', color: '#10b981', padding: '0.3rem 0.6rem', borderRadius: '20px', fontSize: '0.8rem', fontWeight: 700 }}>
+                         <CheckCircle size={14} /> Active
+@@ -151,3 +151,3 @@
+                   </td>
+-                  <td style={{ padding: '1rem', textAlign: 'right' }}>
++                  <td style={{ padding: '1rem 1.5rem', textAlign: 'right' }}>
+                     <button 

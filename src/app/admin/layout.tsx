@@ -4,7 +4,6 @@ import { useRouter, usePathname } from 'next/navigation'
 import Link from 'next/link'
 import { Shield, LogOut, LayoutDashboard } from 'lucide-react'
 import { AuthService } from '@/services/auth.service'
-import Logo from '@/components/Logo'
 import Swal from 'sweetalert2'
 
 export default function AdminLayout({ children }: { children: ReactNode }) {
@@ -91,49 +90,64 @@ export default function AdminLayout({ children }: { children: ReactNode }) {
         </button>
       </aside>
 
+      {/* Admin Mobile Top Bar */}
+      <header className="hide-on-desktop" style={{
+        position: 'fixed',
+        top: 0, left: 0, width: '100%',
+        background: 'rgba(25, 25, 30, 0.98)',
+        backdropFilter: 'blur(20px)',
+        borderBottom: '1px solid rgba(255,255,255,0.05)',
+        display: 'flex',
+        justifyContent: 'space-between',
+        alignItems: 'center',
+        padding: '0.75rem 1.25rem',
+        zIndex: 100,
+        color: '#fff',
+        boxShadow: '0 4px 12px rgba(0,0,0,0.1)'
+      }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+          <Shield color="#ef4444" size={24} />
+          <span style={{ fontSize: '1.1rem', fontWeight: 800 }}>Admin Portal</span>
+        </div>
+        <div style={{
+          width: '32px', height: '32px', borderRadius: '50%',
+          background: 'var(--primary)', color: '#fff',
+          display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: 700
+        }}>A</div>
+      </header>
+
       {/* Admin Mobile Nav */}
       <nav className="hide-on-desktop" style={{
         position: 'fixed',
-        bottom: 0,
-        left: 0,
-        width: '100%',
+        bottom: 0, left: 0, width: '100%',
         background: 'rgba(25, 25, 30, 0.98)',
         backdropFilter: 'blur(20px)',
         borderTop: '1px solid rgba(255,255,255,0.05)',
         display: 'flex',
         justifyContent: 'space-around',
         alignItems: 'center',
-        padding: '0.5rem',
+        padding: '0.8rem 0.5rem',
         paddingBottom: 'calc(env(safe-area-inset-bottom, 0.5rem) + 0.2rem)',
         zIndex: 100,
       }}>
         <Link href="/admin/dashboard" style={{
           display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '0.2rem',
-          color: 'var(--primary)', textDecoration: 'none', padding: '0.5rem'
+          color: 'var(--primary)', textDecoration: 'none'
         }}>
           <LayoutDashboard size={20} />
-          <span style={{ fontSize: '0.7rem', fontWeight: 700 }}>Dashboard</span>
+          <span style={{ fontSize: '0.75rem', fontWeight: 700 }}>Dashboard</span>
         </Link>
         <button onClick={handleLogout} style={{
           background: 'none', border: 'none', color: '#ef4444',
-          display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '0.2rem', padding: '0.5rem'
+          display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '0.2rem'
         }}>
           <LogOut size={20} />
-          <span style={{ fontSize: '0.7rem', fontWeight: 600 }}>Logout</span>
+          <span style={{ fontSize: '0.75rem', fontWeight: 600 }}>Logout</span>
         </button>
       </nav>
 
       {/* Main Content Area */}
-      <main style={{ flex: 1, padding: '2rem', paddingBottom: '6rem', marginLeft: '260px' }} className="admin-main-content">
-        <style>{`
-          @media (max-width: 768px) {
-            .admin-main-content {
-              margin-left: 0 !important;
-              padding: 1.5rem !important;
-              padding-bottom: 6rem !important;
-            }
-          }
-        `}</style>
+      <main className="dashboard-main">
         {children}
       </main>
     </div>
