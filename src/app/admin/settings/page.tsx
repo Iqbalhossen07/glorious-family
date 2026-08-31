@@ -1,9 +1,9 @@
 'use client'
 import { useState, useEffect } from 'react'
 import { Settings, User, Lock, Mail, Save } from 'lucide-react'
-import { AuthService } from '@/services/auth.service'
 import { supabase } from '@/lib/supabase'
 import Swal from 'sweetalert2'
+import AvatarUpload from '@/components/AvatarUpload'
 
 export default function AdminSettingsPage() {
   const [loading, setLoading] = useState(false)
@@ -11,6 +11,7 @@ export default function AdminSettingsPage() {
   
   const [fullName, setFullName] = useState('')
   const [password, setPassword] = useState('')
+  const [avatarUrl, setAvatarUrl] = useState('')
 
   useEffect(() => {
     fetchUser()
@@ -22,6 +23,7 @@ export default function AdminSettingsPage() {
       if (user) {
         setUser(user)
         setFullName(user.user_metadata?.full_name || 'Iqbal Hossen')
+        setAvatarUrl(user.user_metadata?.avatar_url || '')
       }
     } catch (err) {}
   }
@@ -62,7 +64,14 @@ export default function AdminSettingsPage() {
         </div>
       </div>
 
-      <div className="minimal-card" style={{ padding: '2rem', borderRadius: '16px', maxWidth: '600px' }}>
+      <div className="minimal-card" style={{ padding: '2rem', borderRadius: '16px', maxWidth: '600px', display: 'flex', flexDirection: 'column', gap: '2rem' }}>
+        
+        <AvatarUpload 
+          currentUrl={avatarUrl} 
+          userName={fullName}
+          onUploadSuccess={(url) => setAvatarUrl(url)} 
+        />
+
         <form onSubmit={handleUpdate} style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem' }}>
           
           <div className="input-group">

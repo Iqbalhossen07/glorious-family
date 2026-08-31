@@ -5,6 +5,7 @@ import { AuthService } from '@/services/auth.service'
 import { MemberService } from '@/services/member.service'
 import { MessService } from '@/services/mess.service'
 import Swal from 'sweetalert2'
+import AvatarUpload from '@/components/AvatarUpload'
 
 export default function SettingsPage() {
   const [user, setUser] = useState<any>(null)
@@ -13,6 +14,7 @@ export default function SettingsPage() {
   // Profile State
   const [name, setName] = useState('')
   const [email, setEmail] = useState('')
+  const [avatarUrl, setAvatarUrl] = useState('')
 
   // Password State
   const [password, setPassword] = useState('')
@@ -36,6 +38,7 @@ export default function SettingsPage() {
           setDbUser(currentUserData)
           setName(currentUserData.name)
           setEmail(currentUserData.email)
+          setAvatarUrl(currentUserData.avatar_url || '')
           
           if (currentUserData.role === 'manager' && currentUserData.messes) {
             setMessName(currentUserData.messes.name || '')
@@ -180,6 +183,14 @@ export default function SettingsPage() {
           <User size={20} color="var(--primary)" /> Profile Details
         </h2>
         
+        <div style={{ marginBottom: '2rem' }}>
+          <AvatarUpload 
+            currentUrl={avatarUrl} 
+            userName={name}
+            onUploadSuccess={(url) => setAvatarUrl(url)} 
+          />
+        </div>
+
         <form onSubmit={handleUpdateProfile}>
           <div className="input-group">
             <label className="input-label">Full Name</label>

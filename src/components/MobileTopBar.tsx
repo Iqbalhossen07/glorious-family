@@ -5,14 +5,20 @@ import { AuthService } from '@/services/auth.service'
 
 export default function MobileTopBar() {
   const [initials, setInitials] = useState('U')
+  const [avatarUrl, setAvatarUrl] = useState('')
 
   useEffect(() => {
     const fetchUser = async () => {
       try {
         const session = await AuthService.getSession()
         const fullName = session?.user?.user_metadata?.full_name
+        const avatar = session?.user?.user_metadata?.avatar_url
+        
         if (fullName) {
           setInitials(fullName.charAt(0).toUpperCase())
+        }
+        if (avatar) {
+          setAvatarUrl(avatar)
         }
       } catch (error) {}
     }
@@ -48,9 +54,14 @@ export default function MobileTopBar() {
         justifyContent: 'center',
         fontWeight: 700,
         fontSize: '1rem',
-        boxShadow: '0 2px 8px rgba(12, 173, 121, 0.3)'
+        boxShadow: '0 2px 8px rgba(12, 173, 121, 0.3)',
+        overflow: 'hidden'
       }}>
-        {initials}
+        {avatarUrl ? (
+          <img src={avatarUrl} alt="Profile" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+        ) : (
+          initials
+        )}
       </div>
     </header>
   )
