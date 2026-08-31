@@ -44,5 +44,17 @@ export const MessService = {
     if (updateError) throw new Error(updateError.message)
     
     return mess
+  },
+
+  async updateMess(messId: string, updates: { name?: string, address?: string }) {
+    const { data, error } = await supabase
+      .from('messes')
+      .update(updates)
+      .eq('id', messId)
+      .select()
+      .single()
+
+    if (error) throw new Error(error.message)
+    return data
   }
 }
