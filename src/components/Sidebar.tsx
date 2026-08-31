@@ -16,6 +16,7 @@ export default function Sidebar() {
     ? [
         { name: 'Dashboard', path: '/admin/dashboard', icon: <LayoutDashboard size={18} />, color: '#ef4444' },
         { name: 'Analytics', path: '/admin/analytics', icon: <Globe size={18} />, color: '#3b82f6' },
+        { name: 'Settings', path: '/admin/settings', icon: <Settings size={18} />, color: '#64748b' },
       ]
     : [
         { name: 'Home', path: '/dashboard', icon: <Home size={18} />, color: '#3b82f6' },
@@ -68,7 +69,7 @@ export default function Sidebar() {
     }}>
       
       <div style={{ marginBottom: '2rem', paddingLeft: '0.5rem' }}>
-        <Logo size="sm" />
+        <Logo size="sm" text={isAdmin ? 'Super Admin' : 'Glorious Family'} />
       </div>
 
       <nav style={{ flex: 1, display: 'flex', flexDirection: 'column', gap: '0.4rem' }}>

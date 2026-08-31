@@ -40,6 +40,7 @@ export default function BottomNav() {
     ? [
         { name: 'Dashboard', path: '/admin/dashboard', icon: <LayoutDashboard size={16} />, color: '#ef4444' },
         { name: 'Analytics', path: '/admin/analytics', icon: <Globe size={16} />, color: '#3b82f6' },
+        { name: 'Settings', path: '/admin/settings', icon: <Settings size={16} />, color: '#64748b' },
       ]
     : [
         { name: 'Home', path: '/dashboard', icon: <Home size={16} />, color: '#3b82f6' },
@@ -57,7 +58,7 @@ export default function BottomNav() {
       ]
 
   // Only these appear on the sticky bottom bar
-  const stickyPaths = isAdmin ? ['/admin/dashboard', '/admin/analytics'] : ['/dashboard', '/dashboard/other-expenses', '/dashboard/members', '/dashboard/meals', '/dashboard/bazar']
+  const stickyPaths = isAdmin ? ['/admin/dashboard', '/admin/analytics', '/admin/settings'] : ['/dashboard', '/dashboard/other-expenses', '/dashboard/members', '/dashboard/meals', '/dashboard/bazar']
   const stickyItems = allItems.filter(item => stickyPaths.includes(item.path))
 
   return (

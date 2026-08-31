@@ -9,6 +9,7 @@ export default function SuperAdminPage() {
   const [loading, setLoading] = useState(true)
   const [messes, setMesses] = useState<any[]>([])
   const [isAuthorized, setIsAuthorized] = useState(false)
+  const [adminName, setAdminName] = useState('Iqbal Hossen')
 
   const router = useRouter()
 
@@ -22,6 +23,7 @@ export default function SuperAdminPage() {
       // Hardcode Iqbal's email for super admin access
       if (user?.email === 'iqbalhossen0711@gmail.com') {
         setIsAuthorized(true)
+        setAdminName(user?.user_metadata?.full_name || 'Iqbal Hossen')
         await fetchMesses()
       } else {
         router.push('/admin/login')
@@ -96,12 +98,23 @@ export default function SuperAdminPage() {
 
   return (
     <div style={{ animation: 'fadeIn 0.5s ease', paddingBottom: '5rem' }}>
-      <div style={{ marginBottom: '2rem', display: 'flex', alignItems: 'center', gap: '0.8rem' }}>
-        <Shield size={32} color="var(--primary)" />
-        <div>
-          <h1 style={{ fontSize: '1.75rem', fontWeight: 800, marginBottom: '0.2rem' }}>Super Admin</h1>
-          <p style={{ color: 'var(--text-muted)' }}>Control panel for all SaaS tenants</p>
+      {/* Welcome Banner */}
+      <div className="minimal-card" style={{ 
+        marginBottom: '2rem', 
+        padding: '2rem', 
+        borderRadius: '16px', 
+        background: 'linear-gradient(135deg, rgba(16, 185, 129, 0.1) 0%, rgba(59, 130, 246, 0.1) 100%)',
+        border: '1px solid rgba(16, 185, 129, 0.2)'
+      }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '1rem', marginBottom: '0.5rem' }}>
+          <Shield size={36} color="var(--primary)" />
+          <h1 style={{ fontSize: '2rem', fontWeight: 800, color: 'var(--text-main)', margin: 0 }}>
+            Welcome back, {adminName}!
+          </h1>
         </div>
+        <p style={{ color: 'var(--text-muted)', fontSize: '1.05rem', margin: 0, paddingLeft: '3.25rem' }}>
+          Here's what's happening across all your SaaS tenants today.
+        </p>
       </div>
 
       {/* Stats Cards */}

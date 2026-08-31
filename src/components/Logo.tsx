@@ -1,6 +1,6 @@
 import { Users } from 'lucide-react'
 
-export default function Logo({ color = '#0CAD79', white = false, size = 'md', stacked = false }) {
+export default function Logo({ color = '#0CAD79', white = false, size = 'md', stacked = false, text = 'Glorious Family' }) {
   const iconSize = size === 'lg' ? 48 : size === 'md' ? 32 : 24;
   const textSize = size === 'lg' ? 'clamp(1.3rem, 6vw, 2.2rem)' : size === 'md' ? '1.2rem' : '1rem';
   const textColor = white ? '#ffffff' : '#0f172a';
@@ -18,7 +18,7 @@ export default function Logo({ color = '#0CAD79', white = false, size = 'md', st
         <Users size={iconSize} color={iconCol} strokeWidth={2.5} />
       </div>
       <span style={{ fontSize: textSize, fontWeight: 700, color: textColor, letterSpacing: '-0.02em', fontFamily: 'Merriweather, serif' }}>
-        Glorious Family
+        {text}
       </span>
     </div>
   )

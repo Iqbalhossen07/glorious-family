@@ -35,7 +35,7 @@ export default function MobileTopBar() {
       zIndex: 100,
       boxShadow: '0 4px 12px rgba(0,0,0,0.03)'
     }}>
-      <Logo size="sm" />
+      <Logo size="sm" text={typeof window !== 'undefined' && window.location.pathname.startsWith('/admin') ? 'Super Admin' : 'Glorious Family'} />
       
       <div style={{
         width: '35px',
