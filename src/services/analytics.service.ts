@@ -125,7 +125,7 @@ export const AnalyticsService = {
           meals: memberMealsList,
           bazar: memberBazarList,
           deposits: memberDepositList,
-          fixedExpenses: [...memberRoomRentList, ...memberPaidFixedList]
+          fixedExpenses: memberPaidFixedList
         }
       }
     }
