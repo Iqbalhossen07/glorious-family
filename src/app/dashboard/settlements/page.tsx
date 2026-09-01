@@ -66,42 +66,55 @@ export default function SettlementsPage() {
         FixedExpenseService.getFixedExpenseHistory(sessionId)
       ])
 
+      // Separate room rents and other expenses
+      const allOtherExpenses = fixedData.filter(f => f.item_name !== 'Room Rent')
+      const roomRentsData = fixedData.filter(f => f.item_name === 'Room Rent')
+
       // Determine relevant members (Active OR has activity)
-      const relevantMembers = membersData.map(member => {
+      let relevantMembers = membersData.map(member => {
          const memberMeals = mealsData.filter(m => m.user_id === member.id).reduce((sum, m) => sum + Number(m.meal_count), 0)
          const memberDeposits = depositsData.filter(d => d.user_id === member.id).reduce((sum, d) => sum + Number(d.amount), 0)
          const memberBazar = bazarData.filter(b => b.user_id === member.id).reduce((sum, b) => sum + Number(b.amount), 0)
-         const memberPaidFixed = fixedData.filter(f => f.user_id === member.id).reduce((sum, f) => sum + Number(f.amount), 0)
+         const memberPaidFixed = allOtherExpenses.filter(f => f.user_id === member.id).reduce((sum, f) => sum + Number(f.amount), 0)
+         const memberRoomRent = roomRentsData.filter(f => f.user_id === member.id).reduce((sum, f) => sum + Number(f.amount), 0)
          
-         const hasActivity = memberMeals > 0 || memberDeposits !== 0 || memberBazar > 0 || memberPaidFixed > 0
+         const hasActivity = memberMeals > 0 || memberDeposits !== 0 || memberBazar > 0 || memberPaidFixed > 0 || memberRoomRent > 0
          
          return {
            ...member,
            hasActivity,
            totalMeals: memberMeals,
+           memberRoomRent,
            totalPaid: memberDeposits + memberBazar + memberPaidFixed
          }
-      }).filter(m => m.status === 'active' || m.hasActivity)
+      })
+      
+      const currentSession = sessions.find(s => s.id === sessionId)
+      if (currentSession?.status === 'closed') {
+         relevantMembers = relevantMembers.filter(m => m.hasActivity)
+      } else {
+         relevantMembers = relevantMembers.filter(m => m.status === 'active' || m.hasActivity)
+      }
 
       // Calculate totals
       const tMeals = mealsData.reduce((sum, m) => sum + Number(m.meal_count), 0)
       const tBazar = bazarData.reduce((sum, b) => sum + Number(b.amount), 0)
-      const tFixed = fixedData.reduce((sum, f) => sum + Number(f.amount), 0)
+      const tSharedFixed = allOtherExpenses.reduce((sum, f) => sum + Number(f.amount), 0)
       
       const mRate = tMeals > 0 ? (tBazar / tMeals) : 0
       const activeMembersCount = relevantMembers.length
-      const fixedCostPerMember = activeMembersCount > 0 ? (tFixed / activeMembersCount) : 0
+      const sharedCostPerMember = activeMembersCount > 0 ? (tSharedFixed / activeMembersCount) : 0
 
       setMessStats({
         totalMeals: tMeals,
         totalBazar: tBazar,
         mealRate: mRate,
-        sharedFixedExpense: fixedCostPerMember
+        sharedFixedExpense: sharedCostPerMember
       })
 
       const mStats: any = {}
       relevantMembers.forEach(member => {
-         const totalExpense = (member.totalMeals * mRate) + fixedCostPerMember
+         const totalExpense = (member.totalMeals * mRate) + sharedCostPerMember + member.memberRoomRent
          
          mStats[member.id] = {
            totalExpense,
