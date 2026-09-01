@@ -51,7 +51,7 @@ export const SessionService = {
       .from('sessions')
       .select('*')
       .eq('mess_id', user.mess_id)
-      .order('created_at', { ascending: false })
+      .order('start_date', { ascending: false })
       
     if (error) {
       console.error('Error fetching all sessions:', error)
@@ -59,6 +59,19 @@ export const SessionService = {
     }
     
     return data
+  },
+
+  async getSessionForDate(date: string) {
+    const sessions = await this.getAllSessions()
+    if (!sessions || sessions.length === 0) return null
+
+    // Sort descending by start_date to find the closest previous session
+    const sorted = [...sessions].sort((a, b) => new Date(b.start_date).getTime() - new Date(a.start_date).getTime())
+    
+    // Find the first session where start_date is <= the given date
+    const session = sorted.find(s => new Date(s.start_date) <= new Date(date))
+    
+    return session || sorted[sorted.length - 1] // Fallback to oldest if date is way before
   },
 
   async getSessionById(sessionId: string) {

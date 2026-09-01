@@ -61,7 +61,11 @@ export default function AddFixedExpensePage() {
 
     try {
       Swal.showLoading()
-      await FixedExpenseService.addFixedExpense(session.id, actualUserId, date, itemName, Number(amount), user.id)
+
+      const targetSession = await SessionService.getSessionForDate(date)
+      if (!targetSession) throw new Error("No session found for this date")
+
+      await FixedExpenseService.addFixedExpense(targetSession.id, actualUserId, date, itemName, Number(amount), user.id)
       await Swal.fire('Success!', 'Other expense added successfully.', 'success')
       router.push('/dashboard/other-expenses')
     } catch (error: any) {

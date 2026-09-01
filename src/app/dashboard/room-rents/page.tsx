@@ -28,46 +28,55 @@ export default function RoomRentsPage() {
   const [rentData, setRentData] = useState<RoomRentState>({})
 
   useEffect(() => {
-    const loadData = async () => {
+    const loadInitial = async () => {
       try {
         const authSession = await AuthService.getSession()
         setUser(authSession?.user)
 
-        const currentSession = await SessionService.getCurrentSession()
-        setSession(currentSession)
+        const membersData = await MemberService.getAllMembers()
+        const activeMembers = membersData.filter(m => m.status === 'active')
+        setMembers(activeMembers)
+      } catch (error) {
+        console.error("Error loading initial data:", error)
+      }
+    }
+    loadInitial()
+  }, [])
 
-        if (currentSession) {
-          const membersData = await MemberService.getAllMembers()
-          const activeMembers = membersData.filter(m => m.status === 'active')
-          setMembers(activeMembers)
+  useEffect(() => {
+    const loadSessionRents = async () => {
+      if (members.length === 0) return
+      try {
+        setLoading(true)
+        const targetSession = await SessionService.getSessionForDate(date)
+        setSession(targetSession)
 
-          // Fetch existing room rents
+        if (targetSession) {
           const { data: existingRents, error } = await supabase
             .from('fixed_expenses')
             .select('*')
-            .eq('session_id', currentSession.id)
+            .eq('session_id', targetSession.id)
             .eq('item_name', 'Room Rent')
 
           const initialRents: RoomRentState = {}
-          activeMembers.forEach((m) => {
+          members.forEach((m) => {
             const memberRent = existingRents?.find(r => r.user_id === m.id)
             initialRents[m.id] = memberRent ? Number(memberRent.amount) : 1225
           })
           
-          if (existingRents && existingRents.length > 0) {
-             setDate(existingRents[0].date)
-          }
+          // DO NOT override the date the user just picked
+          // If we want to set it to existing date, we only do it if it's the exact same session
           
           setRentData(initialRents)
         }
       } catch (error) {
-        console.error("Error loading members:", error)
+        console.error("Error loading session rents:", error)
       } finally {
         setLoading(false)
       }
     }
-    loadData()
-  }, [])
+    loadSessionRents()
+  }, [date, members])
 
   const handleInputChange = (userId: string, value: string) => {
     let numValue = value === '' ? 0 : parseFloat(value)
@@ -87,14 +96,17 @@ export default function RoomRentsPage() {
   }
 
   const handleSaveAll = async () => {
-    if (!session || !user) return
+    if (!user) return
 
     try {
       Swal.showLoading()
+
+      const targetSession = await SessionService.getSessionForDate(date)
+      if (!targetSession) throw new Error("No session found for this date")
       
       await supabase.from('fixed_expenses')
         .delete()
-        .eq('session_id', session.id)
+        .eq('session_id', targetSession.id)
         .eq('item_name', 'Room Rent')
 
       const rentsToInsert: any[] = []
@@ -103,7 +115,7 @@ export default function RoomRentsPage() {
         const amount = rentData[userId]
         if (amount > 0) {
           rentsToInsert.push({
-            session_id: session.id,
+            session_id: targetSession.id,
             user_id: userId,
             date: date,
             item_name: 'Room Rent',

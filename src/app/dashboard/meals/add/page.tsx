@@ -105,7 +105,11 @@ export default function MealsPage() {
 
     try {
       Swal.showLoading()
-      await MealService.saveMealsForDate(session.id, date, mealsToInsert)
+
+      const targetSession = await SessionService.getSessionForDate(date)
+      if (!targetSession) throw new Error("No session found for this date")
+
+      await MealService.saveMealsForDate(targetSession.id, date, mealsToInsert)
       await Swal.fire('Success!', 'All meals saved successfully.', 'success')
       router.push('/dashboard/meals')
     } catch (error: any) {

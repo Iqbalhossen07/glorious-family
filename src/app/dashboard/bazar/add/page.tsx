@@ -62,7 +62,12 @@ export default function AddBazarPage() {
 
     try {
       Swal.showLoading()
-      await BazarService.addBazar(session.id, userId, date, itemName, Number(amount), user.id)
+
+      // Determine correct session based on selected date
+      const targetSession = await SessionService.getSessionForDate(date)
+      if (!targetSession) throw new Error("No session found for this date")
+
+      await BazarService.addBazar(targetSession.id, userId, date, itemName, Number(amount), user.id)
       await Swal.fire('Success!', 'Bazar expense added successfully.', 'success')
       router.push('/dashboard/bazar')
     } catch (error: any) {

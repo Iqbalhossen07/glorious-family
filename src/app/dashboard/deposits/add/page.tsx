@@ -58,7 +58,11 @@ export default function AddDepositPage() {
 
     try {
       Swal.showLoading()
-      await DepositService.addDeposit(session.id, userId, date, Number(amount), user.id)
+
+      const targetSession = await SessionService.getSessionForDate(date)
+      if (!targetSession) throw new Error("No session found for this date")
+
+      await DepositService.addDeposit(targetSession.id, userId, date, Number(amount), user.id)
       await Swal.fire('Success!', 'Deposit added successfully.', 'success')
       router.push('/dashboard/deposits')
     } catch (error: any) {
