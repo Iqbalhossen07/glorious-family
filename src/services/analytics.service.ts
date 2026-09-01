@@ -1,4 +1,5 @@
 import { supabase } from '@/lib/supabase'
+import { MemberService } from './member.service'
 
 export const AnalyticsService = {
   /**
@@ -10,10 +11,12 @@ export const AnalyticsService = {
     const startDate = new Date(Date.UTC(year, month - 1, 1, 0, 0, 0)).toISOString()
     const endDate = new Date(Date.UTC(year, month, 0, 23, 59, 59, 999)).toISOString()
 
-    // 1. Fetch ALL users in the mess to determine relevant members
-    const { data: allUsers } = await supabase
-      .from('users')
-      .select('id, status')
+    // 1. Fetch session status and ALL members in the mess
+    const [sessionRes, allUsers] = await Promise.all([
+      supabase.from('sessions').select('status').eq('id', sessionId).single(),
+      MemberService.getAllMembers()
+    ])
+    const sessionStatus = sessionRes.data?.status || 'open'
 
     // 2. Fetch all meals for the mess in this month
     const { data: allMeals } = await supabase
@@ -58,7 +61,7 @@ export const AnalyticsService = {
     const totalSharedFixedExpense = allOtherExpenses.reduce((sum, item) => sum + Number(item.amount), 0)
     
     // Determine number of relevant members (same logic as Summary)
-    const relevantUsers = (allUsers || []).filter(u => {
+    let relevantUsers = (allUsers || []).map(u => {
       const hasMeals = allMeals?.some(m => m.user_id === u.id)
       const hasBazar = allBazar?.some(m => m.user_id === u.id)
       const hasDeposits = allDeposits?.some(m => m.user_id === u.id)
@@ -66,8 +69,14 @@ export const AnalyticsService = {
       const hasPaidFixed = allOtherExpenses?.some(m => m.user_id === u.id)
       
       const hasActivity = hasMeals || hasBazar || hasDeposits || hasRoomRent || hasPaidFixed
-      return u.status === 'active' || hasActivity
+      return { ...u, hasActivity }
     })
+    
+    if (sessionStatus === 'closed') {
+      relevantUsers = relevantUsers.filter(u => u.hasActivity)
+    } else {
+      relevantUsers = relevantUsers.filter(u => u.status === 'active' || u.hasActivity)
+    }
     
     const numMembers = relevantUsers.length || 1
 
