@@ -72,12 +72,35 @@ export default function DashboardPage() {
         setMessFundFixedCost(messFundFixed)
         setTotalRoomRent(tRoomRent)
 
+        // Determine relevant members (same logic as Summary)
+        let relevantMembers = membersData.map(member => {
+           const memberMeals = mealsData.filter((m: any) => m.user_id === member.id).reduce((sum: any, m: any) => sum + Number(m.meal_count), 0)
+           const memberDeposits = depositsData.filter((d: any) => d.user_id === member.id).reduce((sum: any, d: any) => sum + Number(d.amount), 0)
+           const memberBazar = bazarData.filter((b: any) => b.user_id === member.id).reduce((sum: any, b: any) => sum + Number(b.amount), 0)
+           
+           const memberRoomRent = roomRentsData.filter((f: any) => f.user_id === member.id).reduce((sum: any, f: any) => sum + Number(f.amount), 0)
+           const memberPaidFixed = allOtherExpenses.filter((f: any) => f.user_id === member.id).reduce((sum: any, f: any) => sum + Number(f.amount), 0)
+           
+           const hasActivity = memberMeals > 0 || memberDeposits !== 0 || memberBazar > 0 || memberRoomRent > 0 || memberPaidFixed > 0
+           
+           return {
+             ...member,
+             hasActivity
+           }
+        })
+        
+        if (session.status === 'closed') {
+           relevantMembers = relevantMembers.filter(m => m.hasActivity)
+        } else {
+           relevantMembers = relevantMembers.filter(m => m.status === 'active' || m.hasActivity)
+        }
+
         const mRate = tMeals > 0 ? (tBazar / tMeals) : 0
-        const activeMembersCount = membersData.length
+        const activeMembersCount = relevantMembers.length
         const sharedCostPerMember = activeMembersCount > 0 ? (tSharedFixed / activeMembersCount) : 0
 
         // Calculate member specific stats
-        const stats = membersData.map(member => {
+        const stats = relevantMembers.map(member => {
            const memberMeals = mealsData.filter((m: any) => m.user_id === member.id).reduce((sum: any, m: any) => sum + Number(m.meal_count), 0)
            const memberDeposits = depositsData.filter((d: any) => d.user_id === member.id).reduce((sum: any, d: any) => sum + Number(d.amount), 0)
            const memberBazar = bazarData.filter((b: any) => b.user_id === member.id).reduce((sum: any, b: any) => sum + Number(b.amount), 0)

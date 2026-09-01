@@ -10,10 +10,10 @@ export const AnalyticsService = {
     const startDate = new Date(Date.UTC(year, month - 1, 1, 0, 0, 0)).toISOString()
     const endDate = new Date(Date.UTC(year, month, 0, 23, 59, 59, 999)).toISOString()
 
-    // 1. Fetch total active members (for shared expenses)
-    const { count: totalMembers } = await supabase
+    // 1. Fetch ALL users in the mess to determine relevant members
+    const { data: allUsers } = await supabase
       .from('users')
-      .select('*', { count: 'exact', head: true })
+      .select('id, status')
 
     // 2. Fetch all meals for the mess in this month
     const { data: allMeals } = await supabase
@@ -36,18 +36,15 @@ export const AnalyticsService = {
     // 4. Fetch all fixed expenses for the mess in this month
     const { data: allFixedExpenses } = await supabase
       .from('fixed_expenses')
-      .select('amount, user_id, date, item_name, created_at')
+      .select('amount, user_id, item_name, date, created_at')
       .eq('session_id', sessionId)
-      .gte('date', startDate.split('T')[0])
-      .lte('date', endDate.split('T')[0])
-      .order('date', { ascending: false })
+      .order('created_at', { ascending: false })
 
-    // 5. Fetch member deposits in this month
-    const { data: memberDeposits } = await supabase
+    // 5. Fetch ALL deposits in this month (not just member's)
+    const { data: allDeposits } = await supabase
       .from('deposits')
-      .select('amount, date, created_at')
+      .select('amount, user_id, date, created_at')
       .eq('session_id', sessionId)
-      .eq('user_id', memberId)
       .gte('date', startDate.split('T')[0])
       .lte('date', endDate.split('T')[0])
       .order('date', { ascending: false })
@@ -59,7 +56,20 @@ export const AnalyticsService = {
     const totalMessMeals = allMeals?.reduce((sum, item) => sum + Number(item.meal_count), 0) || 0
     const totalMessBazar = allBazar?.reduce((sum, item) => sum + Number(item.amount), 0) || 0
     const totalSharedFixedExpense = allOtherExpenses.reduce((sum, item) => sum + Number(item.amount), 0)
-    const numMembers = totalMembers || 1
+    
+    // Determine number of relevant members (same logic as Summary)
+    const relevantUsers = (allUsers || []).filter(u => {
+      const hasMeals = allMeals?.some(m => m.user_id === u.id)
+      const hasBazar = allBazar?.some(m => m.user_id === u.id)
+      const hasDeposits = allDeposits?.some(m => m.user_id === u.id)
+      const hasRoomRent = roomRents?.some(m => m.user_id === u.id)
+      const hasPaidFixed = allOtherExpenses?.some(m => m.user_id === u.id)
+      
+      const hasActivity = hasMeals || hasBazar || hasDeposits || hasRoomRent || hasPaidFixed
+      return u.status === 'active' || hasActivity
+    })
+    
+    const numMembers = relevantUsers.length || 1
 
     const mealRate = totalMessMeals > 0 ? (totalMessBazar / totalMessMeals) : 0
     const sharedExpensePerMember = totalSharedFixedExpense / numMembers
@@ -67,7 +77,7 @@ export const AnalyticsService = {
     // Member specific calculations and lists
     const memberMealsList = allMeals?.filter(m => m.user_id === memberId) || []
     const memberBazarList = allBazar?.filter(m => m.user_id === memberId) || []
-    const memberDepositList = memberDeposits || []
+    const memberDepositList = allDeposits?.filter(m => m.user_id === memberId) || []
     
     const memberRoomRentList = roomRents.filter(m => m.user_id === memberId)
     const memberPaidFixedList = allOtherExpenses.filter(m => m.user_id === memberId)
