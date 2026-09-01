@@ -220,7 +220,7 @@ export default function SettlementsPage() {
             <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(320px, 1fr))', gap: '1.5rem' }}>
               {settlements.map(s => {
                 const stat = memberStats[s.user_id] || { totalExpense: 0, totalPaid: 0 }
-                const isCleared = s.status === 'cleared' || Number(s.amount) === 0
+                const isCleared = s.status === 'cleared' || Math.abs(Number(s.amount)) < 0.01
                 return (
                   <div key={s.id} className="minimal-card" style={{ padding: '1.5rem', background: isCleared ? 'rgba(12, 173, 121, 0.05)' : 'rgba(255, 255, 255, 0.4)', border: isCleared ? '1px solid rgba(12, 173, 121, 0.3)' : '1px solid rgba(255,255,255,0.6)' }}>
                     <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '1rem' }}>
