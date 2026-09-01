@@ -1,7 +1,7 @@
 'use client'
 import { useEffect, useState } from 'react'
 import { useRouter } from 'next/navigation'
-import { CheckCircle, Clock, Banknote, History } from 'lucide-react'
+import { CheckCircle, Clock, Banknote, History, Receipt } from 'lucide-react'
 import { SessionService } from '@/services/session.service'
 import { SettlementService } from '@/services/settlement.service'
 import { MemberService } from '@/services/member.service'
@@ -220,8 +220,9 @@ export default function SettlementsPage() {
             <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(320px, 1fr))', gap: '1.5rem' }}>
               {settlements.map(s => {
                 const stat = memberStats[s.user_id] || { totalExpense: 0, totalPaid: 0 }
+                const isCleared = s.status === 'cleared' || Number(s.amount) === 0
                 return (
-                  <div key={s.id} className="minimal-card" style={{ padding: '1.5rem', background: s.status === 'cleared' ? 'rgba(12, 173, 121, 0.05)' : 'rgba(255, 255, 255, 0.4)', border: s.status === 'cleared' ? '1px solid rgba(12, 173, 121, 0.3)' : '1px solid rgba(255,255,255,0.6)' }}>
+                  <div key={s.id} className="minimal-card" style={{ padding: '1.5rem', background: isCleared ? 'rgba(12, 173, 121, 0.05)' : 'rgba(255, 255, 255, 0.4)', border: isCleared ? '1px solid rgba(12, 173, 121, 0.3)' : '1px solid rgba(255,255,255,0.6)' }}>
                     <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '1rem' }}>
                       <div>
                         <h3 style={{ fontSize: '1.1rem', fontWeight: 700, margin: 0, color: 'var(--text-main)' }}>{s.user?.name}</h3>
@@ -229,7 +230,7 @@ export default function SettlementsPage() {
                           {s.type === 'receivable' ? 'Member owes mess' : 'Mess owes member'}
                         </p>
                       </div>
-                      {s.status === 'cleared' ? (
+                      {isCleared ? (
                         <span style={{ display: 'inline-flex', alignItems: 'center', gap: '0.3rem', fontSize: '0.75rem', fontWeight: 700, color: 'var(--primary)', background: 'rgba(12, 173, 121, 0.1)', padding: '0.3rem 0.6rem', borderRadius: '20px' }}>
                           <CheckCircle size={14} /> Cleared
                         </span>
@@ -250,10 +251,10 @@ export default function SettlementsPage() {
                         <span style={{ fontWeight: 600 }}>৳ {Number(stat.totalPaid).toFixed(2)}</span>
                       </div>
                       <div style={{ display: 'flex', justifyContent: 'space-between', borderTop: '1px dashed rgba(0,0,0,0.1)', paddingTop: '0.5rem', marginTop: '0.25rem' }}>
-                        <span style={{ color: 'var(--text-muted)' }}>{s.status === 'cleared' ? (s.type === 'receivable' ? 'Settled (Paid by Member)' : 'Settled (Refunded to Member)') : (s.type === 'receivable' ? 'Current Due' : 'Refund Amount')}</span>
-                        <span style={{ fontWeight: 700, color: s.status === 'cleared' ? 'var(--primary)' : (s.type === 'receivable' ? '#ef4444' : 'var(--primary)') }}>৳ {Number(s.amount).toFixed(2)}</span>
+                        <span style={{ color: 'var(--text-muted)' }}>{isCleared ? (s.type === 'receivable' ? 'Settled (Paid by Member)' : 'Settled (Refunded to Member)') : (s.type === 'receivable' ? 'Current Due' : 'Refund Amount')}</span>
+                        <span style={{ fontWeight: 700, color: isCleared ? 'var(--primary)' : (s.type === 'receivable' ? '#ef4444' : 'var(--primary)') }}>৳ {Number(s.amount).toFixed(2)}</span>
                       </div>
-                      {s.status === 'cleared' && (
+                      {isCleared && Number(s.amount) > 0 && (
                         <div style={{ display: 'flex', justifyContent: 'space-between' }}>
                           <span style={{ color: 'var(--text-muted)' }}>Current Due</span>
                           <span style={{ fontWeight: 700, color: 'var(--text-main)' }}>৳ 0.00</span>
@@ -262,7 +263,7 @@ export default function SettlementsPage() {
                     </div>
 
                     <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
-                      {s.status === 'pending' && (
+                      {!isCleared && (
                         <button 
                           onClick={() => handleClearSettlement(s.id, s.user?.name, s.type, s.amount)} 
                           className="btn btn-primary submit-btn" 
@@ -271,13 +272,13 @@ export default function SettlementsPage() {
                           <Banknote size={16} /> {s.type === 'receivable' ? 'Mark as Received' : 'Mark as Refunded'}
                         </button>
                       )}
-                      {s.status === 'cleared' && (
+                      {isCleared && (
                         <button 
                           onClick={() => router.push(`/dashboard/invoice/${s.session_id}/${s.user_id}`)}
                           className="btn" 
                           style={{ width: '100%', background: 'rgba(255, 255, 255, 0.5)', border: '1px solid rgba(0,0,0,0.1)', color: 'var(--text-main)', display: 'flex', justifyContent: 'center', alignItems: 'center', gap: '0.5rem', padding: '0.6rem', borderRadius: '8px', fontWeight: 600, cursor: 'pointer' }}
                         >
-                          View Invoice
+                          <Receipt size={16} /> View Invoice
                         </button>
                       )}
                     </div>
