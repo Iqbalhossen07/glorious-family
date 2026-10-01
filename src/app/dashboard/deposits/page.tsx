@@ -30,7 +30,10 @@ export default function DepositHistoryPage() {
         DepositService.getDepositHistory(session.id)
       ])
       
-      setMembers(membersData)
+      const relevantMembers = membersData.filter(m => 
+        m.status === 'active' || depositData.some((d: any) => d.user_id === m.id)
+      )
+      setMembers(relevantMembers)
       setDepositHistory(depositData)
       
       const total = depositData.reduce((sum, item) => sum + Number(item.amount), 0)

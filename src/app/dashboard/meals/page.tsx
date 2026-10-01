@@ -30,7 +30,10 @@ export default function MealHistoryPage() {
         MealService.getMealHistory(session.id)
       ])
       
-      setMembers(membersData)
+      const relevantMembers = membersData.filter(m => 
+        m.status === 'active' || mealsData.some((meal: any) => meal.user_id === m.id)
+      )
+      setMembers(relevantMembers)
       
       // Group meals by date
       const grouped: { [date: string]: any[] } = {}

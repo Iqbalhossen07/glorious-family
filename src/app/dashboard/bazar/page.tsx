@@ -30,7 +30,10 @@ export default function BazarHistoryPage() {
         BazarService.getBazarHistory(session.id)
       ])
       
-      setMembers(membersData)
+      const relevantMembers = membersData.filter(m => 
+        m.status === 'active' || bazarData.some((b: any) => b.user_id === m.id)
+      )
+      setMembers(relevantMembers)
       setBazarHistory(bazarData)
       
       const total = bazarData.reduce((sum, item) => sum + Number(item.amount), 0)

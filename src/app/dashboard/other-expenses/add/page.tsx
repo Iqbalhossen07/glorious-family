@@ -32,7 +32,8 @@ export default function AddFixedExpensePage() {
 
         if (currentSession) {
           const membersData = await MemberService.getAllMembers()
-          setMembers(membersData)
+          const activeMembers = membersData.filter(m => m.status === 'active')
+          setMembers(activeMembers)
         }
       } catch (error) {
         console.error("Error loading members:", error)

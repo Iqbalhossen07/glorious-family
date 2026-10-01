@@ -30,8 +30,12 @@ export default function FixedExpenseHistoryPage() {
         FixedExpenseService.getFixedExpenseHistory(session.id)
       ])
       
-      setMembers(membersData)
       const filteredExpenses = expenseData.filter((e: any) => e.item_name !== 'Room Rent')
+      
+      const relevantMembers = membersData.filter(m => 
+        m.status === 'active' || filteredExpenses.some((e: any) => e.user_id === m.id)
+      )
+      setMembers(relevantMembers)
       setExpenseHistory(filteredExpenses)
       
       const total = filteredExpenses.reduce((sum: any, item: any) => sum + Number(item.amount), 0)
