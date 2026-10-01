@@ -74,7 +74,18 @@ export default function SummaryPage() {
                memberPaidFixed: memberPaidFixed,
                totalGiven: memberDeposits + memberBazar + memberPaidFixed
              }
-          }).filter(m => m.status === 'active' || m.hasActivity)
+          }).filter(m => {
+             if (m.hasActivity) return true
+             if (m.status !== 'active') return false
+             
+             // If session is closed, only include members with activity
+             if (session.status === 'closed') return false
+             
+             const sessionDate = new Date(session.start_date)
+             const endOfMonth = new Date(sessionDate.getFullYear(), sessionDate.getMonth() + 1, 0, 23, 59, 59)
+             const memberCreatedDate = new Date(m.created_at)
+             return memberCreatedDate <= endOfMonth
+          })
 
           const activeMembersCount = relevantMembers.length
           const sharedCostPerMember = activeMembersCount > 0 ? (tSharedFixed / activeMembersCount) : 0

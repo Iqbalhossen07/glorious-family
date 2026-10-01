@@ -90,10 +90,19 @@ export default function SettlementsPage() {
       })
       
       const currentSession = sessions.find(s => s.id === sessionId)
+      
+      const sessionDate = new Date(currentSession?.start_date || new Date())
+      const endOfMonth = new Date(sessionDate.getFullYear(), sessionDate.getMonth() + 1, 0, 23, 59, 59)
+      
       if (currentSession?.status === 'closed') {
          relevantMembers = relevantMembers.filter(m => m.hasActivity)
       } else {
-         relevantMembers = relevantMembers.filter(m => m.status === 'active' || m.hasActivity)
+         relevantMembers = relevantMembers.filter(m => {
+            if (m.hasActivity) return true
+            if (m.status !== 'active') return false
+            const memberCreatedDate = new Date(m.created_at)
+            return memberCreatedDate <= endOfMonth
+         })
       }
 
       // Calculate totals

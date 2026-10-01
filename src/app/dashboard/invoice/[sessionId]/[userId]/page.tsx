@@ -59,7 +59,31 @@ export default function InvoicePage() {
         const tMeals = mealsData.reduce((sum, m) => sum + Number(m.meal_count), 0)
         const tBazar = bazarData.reduce((sum, b) => sum + Number(b.amount), 0)
         const tFixed = allOtherExpenses.reduce((sum, f) => sum + Number(f.amount), 0)
-        const activeMembersCount = members.length
+        
+        let relevantMembers = members.map(m => {
+           const mMeals = mealsData.filter(d => d.user_id === m.id).reduce((sum, d) => sum + Number(d.meal_count), 0)
+           const mDeposits = depositsData.filter(d => d.user_id === m.id).reduce((sum, d) => sum + Number(d.amount), 0)
+           const mBazar = bazarData.filter(b => b.user_id === m.id).reduce((sum, b) => sum + Number(b.amount), 0)
+           const mPaidFixed = allOtherExpenses.filter(f => f.user_id === m.id).reduce((sum, f) => sum + Number(f.amount), 0)
+           const mRoomRent = roomRentsData.filter(f => f.user_id === m.id).reduce((sum, f) => sum + Number(f.amount), 0)
+           return { ...m, hasActivity: mMeals > 0 || mDeposits !== 0 || mBazar > 0 || mPaidFixed > 0 || mRoomRent > 0 }
+        })
+
+        const sessionDate = new Date(sData?.start_date || new Date())
+        const endOfMonth = new Date(sessionDate.getFullYear(), sessionDate.getMonth() + 1, 0, 23, 59, 59)
+
+        if (sData?.status === 'closed') {
+           relevantMembers = relevantMembers.filter(m => m.hasActivity)
+        } else {
+           relevantMembers = relevantMembers.filter(m => {
+              if (m.hasActivity) return true
+              if (m.status !== 'active') return false
+              const memberCreatedDate = new Date(m.created_at)
+              return memberCreatedDate <= endOfMonth
+           })
+        }
+        
+        const activeMembersCount = relevantMembers.length
         
         const mRate = tMeals > 0 ? (tBazar / tMeals) : 0
         const fixedCostPerMember = activeMembersCount > 0 ? (tFixed / activeMembersCount) : 0

@@ -69,7 +69,14 @@ export const AnalyticsService = {
     if (sessionStatus === 'closed') {
       relevantUsers = relevantUsers.filter(u => u.hasActivity)
     } else {
-      relevantUsers = relevantUsers.filter(u => u.status === 'active' || u.hasActivity)
+      relevantUsers = relevantUsers.filter(u => {
+        if (u.hasActivity) return true
+        if (u.status !== 'active') return false
+        
+        const memberCreatedDate = new Date(u.created_at)
+        const endOfMonth = new Date(year, month, 0, 23, 59, 59)
+        return memberCreatedDate <= endOfMonth
+      })
     }
     
     const numMembers = relevantUsers.length || 1

@@ -89,10 +89,18 @@ export default function DashboardPage() {
            }
         })
         
+        const sessionDate = new Date(session.start_date)
+        const endOfMonth = new Date(sessionDate.getFullYear(), sessionDate.getMonth() + 1, 0, 23, 59, 59)
+        
         if (session.status === 'closed') {
            relevantMembers = relevantMembers.filter(m => m.hasActivity)
         } else {
-           relevantMembers = relevantMembers.filter(m => m.status === 'active' || m.hasActivity)
+           relevantMembers = relevantMembers.filter(m => {
+              if (m.hasActivity) return true
+              if (m.status !== 'active') return false
+              const memberCreatedDate = new Date(m.created_at)
+              return memberCreatedDate <= endOfMonth
+           })
         }
 
         const mRate = tMeals > 0 ? (tBazar / tMeals) : 0
