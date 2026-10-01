@@ -23,8 +23,6 @@ export const AnalyticsService = {
       .from('daily_meals')
       .select('meal_count, breakfast, lunch, dinner, user_id, date, created_at')
       .eq('session_id', sessionId)
-      .gte('date', startDate.split('T')[0])
-      .lte('date', endDate.split('T')[0])
       .order('date', { ascending: false })
 
     // 3. Fetch all bazar for the mess in this month
@@ -32,8 +30,6 @@ export const AnalyticsService = {
       .from('bazar_expenses')
       .select('amount, user_id, date, item_name, created_at')
       .eq('session_id', sessionId)
-      .gte('date', startDate.split('T')[0])
-      .lte('date', endDate.split('T')[0])
       .order('date', { ascending: false })
 
     // 4. Fetch all fixed expenses for the mess in this month
@@ -48,8 +44,6 @@ export const AnalyticsService = {
       .from('deposits')
       .select('amount, user_id, date, created_at')
       .eq('session_id', sessionId)
-      .gte('date', startDate.split('T')[0])
-      .lte('date', endDate.split('T')[0])
       .order('date', { ascending: false })
 
     // --- Calculations ---
