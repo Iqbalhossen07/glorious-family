@@ -132,6 +132,11 @@ export default function RoomRentsPage() {
       const targetSession = await SessionService.getSessionForDate(date)
       if (!targetSession) throw new Error("No session found for this date")
       
+      if (targetSession.status === 'closed') {
+        Swal.fire('Error', 'This month is closed. You cannot modify room rents.', 'error')
+        return
+      }
+      
       await supabase.from('fixed_expenses')
         .delete()
         .eq('session_id', targetSession.id)
@@ -220,7 +225,7 @@ export default function RoomRentsPage() {
                   onChange={(e) => handleInputChange(member.id, e.target.value)}
                   className="glass-input"
                   style={{ width: '100%', textAlign: 'right', padding: '0.6rem 1rem 0.6rem 2.5rem', fontSize: '1rem', background: '#fff', border: '1px solid #e2e8f0', borderRadius: '8px' }}
-                  placeholder="0"
+                  placeholder="0" disabled={session?.status === 'closed'}
                 />
               </div>
             </div>
@@ -231,15 +236,17 @@ export default function RoomRentsPage() {
         </div>
       </div>
 
-      <div style={{ display: 'flex', justifyContent: 'flex-end' }}>
-        <button 
-          onClick={handleSaveAll}
-          className="btn btn-primary submit-btn" 
-          style={{ padding: '0.8rem 2rem', fontSize: '1rem', borderRadius: '12px', display: 'flex', alignItems: 'center', gap: '0.5rem', boxShadow: '0 8px 20px rgba(95, 99, 98, 0.3)' }}
-        >
-          <Save size={18} /> Save Rents
-        </button>
-      </div>
+      {session?.status !== 'closed' && (
+        <div style={{ display: 'flex', justifyContent: 'flex-end' }}>
+          <button 
+            onClick={handleSaveAll}
+            className="btn btn-primary submit-btn" 
+            style={{ padding: '0.8rem 2rem', fontSize: '1rem', borderRadius: '12px', display: 'flex', alignItems: 'center', gap: '0.5rem', boxShadow: '0 8px 20px rgba(95, 99, 98, 0.3)' }}
+          >
+            <Save size={18} /> Save Rents
+          </button>
+        </div>
+      )}
 
     </div>
   )
