@@ -21,7 +21,8 @@ export default function RoomRentsPage() {
   const router = useRouter()
   const [session, setSession] = useState<any>(null)
   const [user, setUser] = useState<any>(null)
-  const [members, setMembers] = useState<any[]>([])
+  const [allMembers, setAllMembers] = useState<any[]>([])
+  const [relevantMembers, setRelevantMembers] = useState<any[]>([])
   const [loading, setLoading] = useState(true)
 
   const [date, setDate] = useState(new Date().toISOString().split('T')[0])
@@ -41,8 +42,7 @@ export default function RoomRentsPage() {
         setUser(authSession?.user)
 
         const membersData = await MemberService.getAllMembers()
-        const activeMembers = membersData.filter(m => m.status === 'active')
-        setMembers(activeMembers)
+        setAllMembers(membersData)
       } catch (error) {
         console.error("Error loading initial data:", error)
       }
@@ -52,7 +52,7 @@ export default function RoomRentsPage() {
 
   useEffect(() => {
     const loadSessionRents = async () => {
-      if (members.length === 0) return
+      if (allMembers.length === 0) return
       try {
         setLoading(true)
         const targetSession = await SessionService.getSessionForDate(date)
@@ -65,14 +65,35 @@ export default function RoomRentsPage() {
             .eq('session_id', targetSession.id)
             .eq('item_name', 'Room Rent')
 
+          const [ {data: meals}, {data: bazar}, {data: deposits}, {data: others} ] = await Promise.all([
+             supabase.from('daily_meals').select('user_id').eq('session_id', targetSession.id),
+             supabase.from('bazar_expenses').select('user_id').eq('session_id', targetSession.id),
+             supabase.from('deposits').select('user_id').eq('session_id', targetSession.id),
+             supabase.from('fixed_expenses').select('user_id').eq('session_id', targetSession.id).neq('item_name', 'Room Rent'),
+          ])
+          
+          const activeIds = new Set([
+            ...(meals?.map((m: any) => m.user_id) || []),
+            ...(bazar?.map((m: any) => m.user_id) || []),
+            ...(deposits?.map((m: any) => m.user_id) || []),
+            ...(others?.map((m: any) => m.user_id) || []),
+            ...(existingRents?.map((m: any) => m.user_id) || [])
+          ])
+          
+          const filteredMembers = allMembers.filter(m => {
+             if (targetSession.status === 'open') {
+               return m.status === 'active' || activeIds.has(m.id)
+             }
+             return activeIds.has(m.id)
+          })
+          
+          setRelevantMembers(filteredMembers)
+
           const initialRents: RoomRentState = {}
-          members.forEach((m) => {
+          filteredMembers.forEach((m) => {
             const memberRent = existingRents?.find(r => r.user_id === m.id)
             initialRents[m.id] = memberRent ? Number(memberRent.amount) : 1225
           })
-          
-          // DO NOT override the date the user just picked
-          // If we want to set it to existing date, we only do it if it's the exact same session
           
           setRentData(initialRents)
         }
@@ -83,7 +104,7 @@ export default function RoomRentsPage() {
       }
     }
     loadSessionRents()
-  }, [date, members])
+  }, [date, allMembers])
 
   const handleInputChange = (userId: string, value: string) => {
     let numValue = value === '' ? 0 : parseFloat(value)
@@ -184,7 +205,7 @@ export default function RoomRentsPage() {
             <div style={{ fontWeight: 700, color: 'var(--text-muted)', fontSize: '0.85rem', textTransform: 'uppercase', textAlign: 'right' }}>Amount</div>
           </div>
 
-          {members.map(member => (
+          {relevantMembers.map(member => (
             <div key={member.id} style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem', alignItems: 'center', marginBottom: '1rem', background: '#f8fafc', padding: '0.75rem 1rem', borderRadius: '10px', border: '1px solid rgba(0,0,0,0.02)' }}>
               <div style={{ fontWeight: 600, color: 'var(--text-main)', fontSize: '0.95rem', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
                 {member.name}
@@ -204,7 +225,7 @@ export default function RoomRentsPage() {
               </div>
             </div>
           ))}
-          {members.length === 0 && (
+          {relevantMembers.length === 0 && (
              <p style={{ textAlign: 'center', color: 'var(--text-muted)', margin: '2rem 0' }}>No active members found.</p>
           )}
         </div>
