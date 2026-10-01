@@ -25,6 +25,13 @@ export default function AddFixedExpensePage() {
     const loadData = async () => {
       try {
         const authSession = await AuthService.getSession()
+        const currentUser = await AuthService.getCurrentUser()
+        if (currentUser?.status === 'inactive') {
+          Swal.fire('Access Denied', 'Inactive members cannot modify data.', 'error')
+          router.push('/dashboard')
+          return
+        }
+
         setUser(authSession?.user)
 
         const currentSession = await SessionService.getCurrentSession()

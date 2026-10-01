@@ -58,6 +58,24 @@ export const SessionService = {
       return []
     }
     
+    if (user.status === 'inactive') {
+      const [{ data: meals }, { data: bazar }, { data: deposits }, { data: fixed }] = await Promise.all([
+        supabase.from('daily_meals').select('session_id').eq('user_id', user.id),
+        supabase.from('bazar_expenses').select('session_id').eq('user_id', user.id),
+        supabase.from('deposits').select('session_id').eq('user_id', user.id),
+        supabase.from('fixed_expenses').select('session_id').eq('user_id', user.id)
+      ])
+      
+      const activeSessionIds = new Set([
+        ...(meals?.map((m: any) => m.session_id) || []),
+        ...(bazar?.map((b: any) => b.session_id) || []),
+        ...(deposits?.map((d: any) => d.session_id) || []),
+        ...(fixed?.map((f: any) => f.session_id) || [])
+      ])
+      
+      return data.filter((session: any) => activeSessionIds.has(session.id))
+    }
+    
     return data
   },
 

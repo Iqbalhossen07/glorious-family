@@ -9,7 +9,7 @@ import Swal from 'sweetalert2'
 
 export default function DepositHistoryPage() {
   const router = useRouter()
-  const { selectedSession: session, isLoading: isSessionLoading } = useSessionContext()
+  const { selectedSession: session, currentUser, isLoading: isSessionLoading } = useSessionContext()
   const [members, setMembers] = useState<any[]>([])
   const [depositHistory, setDepositHistory] = useState<any[]>([])
   const [filterUserId, setFilterUserId] = useState<string>('all')
@@ -185,7 +185,7 @@ export default function DepositHistoryPage() {
     )
   }
 
-  const isClosed = session.status === 'closed'
+  const isClosed = session?.status === 'closed' || currentUser?.status === 'inactive'
   const filteredDeposits = filterUserId === 'all' ? depositHistory : depositHistory.filter(d => d.user_id === filterUserId)
   const filteredTotal = filteredDeposits.reduce((sum, item) => sum + Number(item.amount), 0)
 

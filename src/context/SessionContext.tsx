@@ -3,10 +3,13 @@
 import React, { createContext, useContext, useState, useEffect, ReactNode } from 'react'
 import { SessionService } from '@/services/session.service'
 
+import { AuthService } from '@/services/auth.service'
+
 interface SessionContextProps {
   sessions: any[]
   selectedSession: any
   currentActiveSession: any
+  currentUser: any
   isLoading: boolean
   changeSession: (sessionId: string) => void
   clearSession: () => void
@@ -19,11 +22,14 @@ export function SessionProvider({ children }: { children: ReactNode }) {
   const [sessions, setSessions] = useState<any[]>([])
   const [selectedSession, setSelectedSession] = useState<any>(null)
   const [currentActiveSession, setCurrentActiveSession] = useState<any>(null)
+  const [currentUser, setCurrentUser] = useState<any>(null)
   const [isLoading, setIsLoading] = useState(true)
 
   const loadSessions = async () => {
     setIsLoading(true)
     try {
+      const user = await AuthService.getCurrentUser()
+      setCurrentUser(user)
       const allSessions = await SessionService.getAllSessions()
       setSessions(allSessions)
       
@@ -82,6 +88,7 @@ export function SessionProvider({ children }: { children: ReactNode }) {
       sessions,
       selectedSession,
       currentActiveSession,
+      currentUser,
       isLoading,
       changeSession,
       clearSession,

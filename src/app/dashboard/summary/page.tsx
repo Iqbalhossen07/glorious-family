@@ -14,7 +14,7 @@ import { useSessionContext } from '@/context/SessionContext'
 
 export default function SummaryPage() {
   const router = useRouter()
-  const { selectedSession: session, isLoading: isSessionLoading, reloadSessions, changeSession } = useSessionContext()
+  const { selectedSession: session, currentUser, isLoading: isSessionLoading, reloadSessions, changeSession } = useSessionContext()
   const [loading, setLoading] = useState(true)
   const [isClient, setIsClient] = useState(false)
 
@@ -207,12 +207,12 @@ export default function SummaryPage() {
           </div>
         </div>
         <div style={{ display: 'flex', gap: '1rem' }}>
-          {session && session.status === 'closed' && (
+          {session && session.status === 'closed' && currentUser?.status !== 'inactive' && (
             <button onClick={handleReopenMonth} className="btn" style={{ background: '#fef3c7', color: '#d97706', border: '1px solid #fde68a' }}>
               Re-open this Month
             </button>
           )}
-          {session && session.status !== 'closed' && (
+          {session && session.status !== 'closed' && currentUser?.status !== 'inactive' && (
             <button onClick={handleCloseMonth} className="btn btn-primary submit-btn" style={{ background: '#ef4444' }}>
               <CheckCircle size={18} /> Close Month
             </button>

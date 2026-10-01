@@ -9,7 +9,7 @@ import Swal from 'sweetalert2'
 
 export default function MealHistoryPage() {
   const router = useRouter()
-  const { selectedSession: session, isLoading: isSessionLoading } = useSessionContext()
+  const { selectedSession: session, currentUser, isLoading: isSessionLoading } = useSessionContext()
   const [members, setMembers] = useState<any[]>([])
   const [historyByDate, setHistoryByDate] = useState<any[]>([])
   const [filterUserId, setFilterUserId] = useState<string>('all')
@@ -218,6 +218,8 @@ export default function MealHistoryPage() {
 
   const filteredMembers = filterUserId === 'all' ? members : members.filter(m => m.id === filterUserId)
   
+  const isClosed = session?.status === 'closed' || currentUser?.status === 'inactive'
+  
   const filteredHistoryByDate = historyByDate.map(day => {
     const filteredMeals = filterUserId === 'all' ? day.meals : day.meals.filter((m: any) => m.user_id === filterUserId)
     const totalForDate = filteredMeals.reduce((sum: number, m: any) => sum + Number(m.meal_count), 0)
@@ -233,7 +235,7 @@ export default function MealHistoryPage() {
   return (
     <div style={{ animation: 'fadeIn 0.5s ease', paddingBottom: '5rem' }}>
       
-      {session?.status === 'closed' && (
+      {isClosed && (
         <div style={{ background: '#fef3c7', border: '1px solid #f59e0b', color: '#b45309', padding: '1rem', borderRadius: '8px', marginBottom: '1.5rem', display: 'flex', alignItems: 'center', gap: '0.5rem', fontSize: '0.9rem' }}>
           <strong>Notice:</strong> This month is closed. Data is read-only.
         </div>
@@ -248,7 +250,7 @@ export default function MealHistoryPage() {
             Grand Total: {filteredGrandTotal} Meals
           </div>
         </div>
-        {session && session.status !== 'closed' && (
+        {!isClosed && (
           <button onClick={() => router.push('/dashboard/meals/add')} className="btn btn-primary quick-action-btn" style={{ padding: '0.7rem 1.2rem' }}>
             <PlusCircle size={16} style={{ marginRight: '0.4rem' }} /> Add Meal
           </button>
@@ -330,7 +332,7 @@ export default function MealHistoryPage() {
                         <button onClick={() => handleViewDate(day)} className="action-btn action-btn-view" style={{ marginRight: '0.5rem' }}>
                           <Utensils size={14} /> View
                         </button>
-                        {session?.status !== 'closed' && (
+                        {!isClosed && (
                           <>
                             <button onClick={() => handleEditDate(day.date)} className="action-btn action-btn-edit" style={{ marginRight: '0.5rem' }}>
                               <Edit size={14} /> Edit
@@ -385,7 +387,7 @@ export default function MealHistoryPage() {
                     <button onClick={() => handleViewDate(day)} className="action-btn action-btn-view" style={{ padding: '0.5rem' }}>
                       <Utensils size={14} />
                     </button>
-                    {session?.status !== 'closed' && (
+                    {!isClosed && (
                       <>
                         <button onClick={() => handleEditDate(day.date)} className="action-btn action-btn-edit" style={{ padding: '0.5rem' }}>
                           <Edit size={14} />
