@@ -1,12 +1,31 @@
 'use client'
 import { useEffect, useState } from 'react'
 import { useRouter, useParams } from 'next/navigation'
-import { ShoppingCart, Save, ArrowLeft, Calendar, User, List, Plus } from 'lucide-react'
+import { ShoppingCart, Save, ArrowLeft, Calendar, User, List, Plus, X } from 'lucide-react'
 import { SessionService } from '@/services/session.service'
 import { MemberService } from '@/services/member.service'
 import { BazarService } from '@/services/bazar.service'
 import { AuthService } from '@/services/auth.service'
 import Swal from 'sweetalert2'
+
+const formatItemName = (name: string) => {
+  if (!name) return ''
+  const trimmed = name.trim()
+  return trimmed.charAt(0).toUpperCase() + trimmed.slice(1).toLowerCase()
+}
+
+const getUniqueItems = (items: string[]) => {
+  const seen = new Set()
+  const unique: string[] = []
+  for (const item of items) {
+    const formatted = formatItemName(item)
+    if (formatted && !seen.has(formatted.toLowerCase())) {
+      seen.add(formatted.toLowerCase())
+      unique.push(formatted)
+    }
+  }
+  return unique
+}
 
 export default function EditBazarPage() {
   const router = useRouter()
@@ -52,13 +71,18 @@ export default function EditBazarPage() {
           
           setMembers(membersData)
 
-          const words = historyData.flatMap(h => h.item_name.split(',').map((w: string) => w.trim()).filter((w: string) => w.length > 1))
-          const uniqueFromHistory = Array.from(new Set(words))
+          const words = historyData.flatMap(h => h.item_name.split(','))
           
           const savedLocal = localStorage.getItem('customBazarItems')
           const localItems = savedLocal ? JSON.parse(savedLocal) : []
 
-          setSuggestedItems(prev => Array.from(new Set([...prev, ...uniqueFromHistory, ...localItems])))
+          const hiddenLocal = localStorage.getItem('hiddenBazarItems')
+          const hiddenItems = hiddenLocal ? JSON.parse(hiddenLocal) : []
+
+          setSuggestedItems(prev => {
+            const merged = getUniqueItems([...prev, ...words, ...localItems])
+            return merged.filter(i => !hiddenItems.includes(i.toLowerCase()))
+          })
 
           if (bazarData) {
             setDate(bazarData.date || new Date().toISOString().split('T')[0])
@@ -79,12 +103,27 @@ export default function EditBazarPage() {
     setItemName(prev => {
       if (!prev) return item
       let parts = prev.split(',').map(p => p.trim()).filter(Boolean)
-      if (parts.includes(item)) {
-        parts = parts.filter(p => p !== item)
+      const lowerParts = parts.map(p => p.toLowerCase())
+      const itemIndex = lowerParts.indexOf(item.toLowerCase())
+      
+      if (itemIndex !== -1) {
+        parts.splice(itemIndex, 1)
         return parts.join(', ')
       }
       parts.push(item)
       return parts.join(', ')
+    })
+  }
+
+  const handleRemoveSuggestedItem = (e: React.MouseEvent, itemToRemove: string) => {
+    e.stopPropagation()
+    setSuggestedItems(prev => {
+      const updated = prev.filter(i => i.toLowerCase() !== itemToRemove.toLowerCase())
+      const hiddenLocal = localStorage.getItem('hiddenBazarItems')
+      const hiddenItems = hiddenLocal ? JSON.parse(hiddenLocal) : []
+      hiddenItems.push(itemToRemove.toLowerCase())
+      localStorage.setItem('hiddenBazarItems', JSON.stringify(hiddenItems))
+      return updated
     })
   }
 
@@ -102,13 +141,23 @@ export default function EditBazarPage() {
     })
 
     if (newItem) {
-      const trimmed = newItem.trim()
-      setSuggestedItems(prev => {
-        const updated = Array.from(new Set([...prev, trimmed]))
-        localStorage.setItem('customBazarItems', JSON.stringify(updated.filter(i => !defaultItems.includes(i))))
-        return updated
-      })
-      handleChipClick(trimmed)
+      const formatted = formatItemName(newItem)
+      if (formatted) {
+        setSuggestedItems(prev => {
+          const merged = getUniqueItems([...prev, formatted])
+          const custom = merged.filter(i => !defaultItems.some(d => d.toLowerCase() === i.toLowerCase()))
+          localStorage.setItem('customBazarItems', JSON.stringify(custom))
+          
+          const hiddenLocal = localStorage.getItem('hiddenBazarItems')
+          if (hiddenLocal) {
+            const hiddenItems = JSON.parse(hiddenLocal).filter((h: string) => h !== formatted.toLowerCase())
+            localStorage.setItem('hiddenBazarItems', JSON.stringify(hiddenItems))
+          }
+          
+          return merged
+        })
+        handleChipClick(formatted)
+      }
     }
   }
 
@@ -209,17 +258,33 @@ export default function EditBazarPage() {
                     type="button"
                     onClick={() => handleChipClick(item)}
                     style={{
-                      padding: '0.4rem 0.8rem',
-                      background: itemName.split(',').map(p => p.trim()).includes(item) ? 'var(--primary)' : 'rgba(255, 255, 255, 0.5)',
-                      color: itemName.split(',').map(p => p.trim()).includes(item) ? '#fff' : 'var(--text-main)',
+                      padding: '0.4rem 0.6rem 0.4rem 0.8rem',
+                      background: itemName.split(',').map(p => p.trim().toLowerCase()).includes(item.toLowerCase()) ? 'var(--primary)' : 'rgba(255, 255, 255, 0.5)',
+                      color: itemName.split(',').map(p => p.trim().toLowerCase()).includes(item.toLowerCase()) ? '#fff' : 'var(--text-main)',
                       border: '1px solid rgba(0, 0, 0, 0.1)',
                       borderRadius: '20px',
                       fontSize: '0.85rem',
                       cursor: 'pointer',
-                      transition: 'all 0.2s ease'
+                      transition: 'all 0.2s ease',
+                      display: 'flex',
+                      alignItems: 'center',
+                      gap: '0.3rem'
                     }}
                   >
                     {item}
+                    <div 
+                      onClick={(e) => handleRemoveSuggestedItem(e, item)}
+                      style={{ 
+                        display: 'flex', 
+                        alignItems: 'center', 
+                        justifyContent: 'center',
+                        background: 'rgba(0,0,0,0.1)',
+                        borderRadius: '50%',
+                        padding: '2px'
+                      }}
+                    >
+                      <X size={12} />
+                    </div>
                   </button>
                 ))}
                 <button
