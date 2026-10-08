@@ -9,6 +9,9 @@ export default function MembersPage() {
   const [members, setMembers] = useState<any[]>([])
   const [loading, setLoading] = useState(true)
   const [currentUser, setCurrentUser] = useState<any>(null)
+  const [filterType, setFilterType] = useState<'active' | 'inactive'>('active')
+
+  const filteredMembers = members.filter(m => m.status === filterType)
 
   useEffect(() => {
     const loadMembers = async () => {
@@ -184,8 +187,43 @@ export default function MembersPage() {
         )}
       </div>
 
+      <div style={{ display: 'flex', gap: '0.5rem', marginBottom: '1.5rem', flexWrap: 'wrap' }}>
+        <button 
+           onClick={() => setFilterType('active')}
+           style={{ 
+             padding: '0.5rem 1.2rem', 
+             borderRadius: '20px', 
+             fontSize: '0.85rem', 
+             fontWeight: 600, 
+             cursor: 'pointer', 
+             transition: 'all 0.2s', 
+             border: filterType === 'active' ? '1px solid var(--primary)' : '1px solid rgba(0,0,0,0.1)', 
+             background: filterType === 'active' ? 'var(--primary)' : 'rgba(255,255,255,0.5)', 
+             color: filterType === 'active' ? '#fff' : 'var(--text-muted)' 
+           }}
+        >
+           Active ({members.filter(m => m.status === 'active').length})
+        </button>
+        <button 
+           onClick={() => setFilterType('inactive')}
+           style={{ 
+             padding: '0.5rem 1.2rem', 
+             borderRadius: '20px', 
+             fontSize: '0.85rem', 
+             fontWeight: 600, 
+             cursor: 'pointer', 
+             transition: 'all 0.2s', 
+             border: filterType === 'inactive' ? '1px solid var(--primary)' : '1px solid rgba(0,0,0,0.1)', 
+             background: filterType === 'inactive' ? 'var(--primary)' : 'rgba(255,255,255,0.5)', 
+             color: filterType === 'inactive' ? '#fff' : 'var(--text-muted)' 
+           }}
+        >
+           Inactive ({members.filter(m => m.status === 'inactive').length})
+        </button>
+      </div>
+
       <div className="members-grid">
-        {members.map((member) => (
+        {filteredMembers.map((member) => (
           <div key={member.id} className="minimal-card" style={{ position: 'relative', display: 'flex', flexWrap: 'wrap', alignItems: 'center', gap: '1rem' }}>
             
             <div style={{
@@ -287,6 +325,12 @@ export default function MembersPage() {
             
           </div>
         ))}
+        
+        {filteredMembers.length === 0 && (
+          <div style={{ padding: '3rem', textAlign: 'center', color: 'var(--text-muted)', background: 'rgba(255,255,255,0.5)', borderRadius: '16px', gridColumn: '1 / -1' }}>
+            <p>No {filterType} members found.</p>
+          </div>
+        )}
       </div>
 
     </div>
