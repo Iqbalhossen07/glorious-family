@@ -72,7 +72,7 @@ export default function DevClock({ time, size = 160 }: { time: Date, size?: numb
       {/* Tech Stack Labels */}
       {TECH_STACK.map((tech, i) => {
         const angle = (i * 30 - 90) * (Math.PI / 180);
-        const radius = size / 2 - (size * 0.18);
+        const radius = size / 2 - (size * 0.3); // extra safe distance from edge
         const x = Math.cos(angle) * radius;
         const y = Math.sin(angle) * radius;
         
@@ -87,13 +87,13 @@ export default function DevClock({ time, size = 160 }: { time: Date, size?: numb
             style={{
               position: 'absolute',
               transform: `translate(calc(-50% + ${x}px), calc(-50% + ${y}px))`,
-              fontSize: size * 0.055,
+              fontSize: Math.max(9, size * 0.048), // Ensure text doesn't get unreadable
               fontWeight: 700,
               color: colors[i % colors.length],
               textShadow: '0 1px 2px rgba(0,0,0,0.8)',
               zIndex: 2,
               whiteSpace: 'nowrap',
-              letterSpacing: '-0.5px'
+              letterSpacing: '-0.3px'
             }}
           >
             {tech}

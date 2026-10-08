@@ -297,28 +297,27 @@ export default function DashboardPage() {
         boxShadow: '0 8px 32px rgba(12, 173, 121, 0.05)'
       }}>
         <div>
-          <h1 style={{ fontSize: '1.6rem', fontWeight: 700, margin: 0, color: 'var(--text-main)' }}>
-            Welcome back, <span style={{ color: 'var(--primary)' }}>{displayName}</span> 
+          <h1 style={{ fontSize: 'clamp(1.5rem, 4vw, 2rem)', fontWeight: 800, margin: 0, color: 'var(--text-main)', letterSpacing: '-0.02em', lineHeight: 1.2 }}>
+            Welcome back, <br className="hide-on-desktop" /><span style={{ color: 'var(--primary)', position: 'relative' }}>{displayName}</span> <span style={{ display: 'inline-block', transformOrigin: '70% 70%' }}>👋</span>
           </h1>
-          <p style={{ margin: '0.4rem 0 0 0', color: 'var(--text-muted)', fontSize: '0.95rem' }}>
-            Here is what's happening in <strong style={{ color: 'var(--text-main)' }}>{session.session_name}</strong>
+          <p style={{ margin: '0.6rem 0 0 0', color: 'var(--text-muted)', fontSize: '1rem', fontWeight: 500 }}>
+            Here is what's happening in <strong style={{ color: 'var(--primary)', background: 'rgba(12, 173, 121, 0.1)', padding: '0.2rem 0.6rem', borderRadius: '6px', border: '1px solid rgba(12, 173, 121, 0.2)' }}>{session.session_name}</strong>
           </p>
         </div>
         
         <div style={{ display: 'flex', alignItems: 'center', gap: '1.5rem', background: 'rgba(255, 255, 255, 0.5)', padding: '1rem 1.5rem', borderRadius: '16px', border: '1px solid rgba(255, 255, 255, 0.6)', backdropFilter: 'blur(8px)', flexWrap: 'wrap', justifyContent: 'center' }}>
           {currentTime && (
             <div className="hide-on-mobile">
-              <DevClock time={currentTime} size={150} />
+              <DevClock time={currentTime} size={180} />
             </div>
           )}
           <div style={{ textAlign: 'right' }}>
-            <div style={{ fontSize: '0.8rem', fontWeight: 800, color: 'var(--primary)', letterSpacing: '2px', textTransform: 'uppercase', marginBottom: '0.2rem' }}>Dev Clock</div>
-            <div className="clock-time" style={{ fontSize: '2.5rem' }}>
+            <div className="clock-time" style={{ fontSize: 'clamp(1.6rem, 7vw, 3.2rem)', fontWeight: 700, color: 'var(--primary)', lineHeight: 1 }}>
               {t.time}
-              <span style={{ fontSize: '0.5em', margin: '0 6px', opacity: 0.7, fontWeight: 600 }}>{t.sec}</span>
-              <span style={{ fontSize: '0.45em', fontWeight: 700, opacity: 0.9, letterSpacing: '0px' }}>{t.ampm}</span>
+              <span style={{ fontSize: '0.45em', margin: '0 6px', opacity: 0.7, fontWeight: 600 }}>{t.sec}</span>
+              <span style={{ fontSize: '0.4em', fontWeight: 800, opacity: 0.9, letterSpacing: '0px' }}>{t.ampm}</span>
             </div>
-            <div className="clock-date" style={{ fontSize: '1rem', marginTop: '0.2rem' }}>
+            <div className="clock-date" style={{ fontSize: 'clamp(0.9rem, 3vw, 1.1rem)', marginTop: '0.4rem', fontWeight: 600, color: 'var(--text-main)' }}>
               {currentTime ? currentTime.toLocaleDateString('en-US', { weekday: 'long', year: 'numeric', month: 'short', day: 'numeric' }) : 'Loading date...'}
             </div>
           </div>
