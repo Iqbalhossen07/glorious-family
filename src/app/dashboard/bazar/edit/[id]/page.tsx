@@ -78,9 +78,13 @@ export default function EditBazarPage() {
   const handleChipClick = (item: string) => {
     setItemName(prev => {
       if (!prev) return item
-      const parts = prev.split(',').map(p => p.trim()).filter(Boolean)
-      if (parts.includes(item)) return prev // avoid duplicate
-      return prev.endsWith(', ') ? prev + item : prev + ', ' + item
+      let parts = prev.split(',').map(p => p.trim()).filter(Boolean)
+      if (parts.includes(item)) {
+        parts = parts.filter(p => p !== item)
+        return parts.join(', ')
+      }
+      parts.push(item)
+      return parts.join(', ')
     })
   }
 
