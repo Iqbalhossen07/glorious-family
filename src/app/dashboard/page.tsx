@@ -2,8 +2,7 @@
 import { useEffect, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { Utensils, ShoppingCart, Wallet, PlusCircle, CalendarPlus, Calculator, FileText, User } from 'lucide-react'
-import Clock from 'react-clock'
-import 'react-clock/dist/Clock.css'
+import DevClock from '@/components/DevClock'
 import { SessionService } from '@/services/session.service'
 import { AuthService } from '@/services/auth.service'
 import { MemberService } from '@/services/member.service'
@@ -306,19 +305,20 @@ export default function DashboardPage() {
           </p>
         </div>
         
-        <div style={{ display: 'flex', alignItems: 'center', gap: '1rem', background: 'rgba(255, 255, 255, 0.5)', padding: '0.8rem 1.2rem', borderRadius: '12px', border: '1px solid rgba(255, 255, 255, 0.6)', backdropFilter: 'blur(8px)' }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '1.5rem', background: 'rgba(255, 255, 255, 0.5)', padding: '1rem 1.5rem', borderRadius: '16px', border: '1px solid rgba(255, 255, 255, 0.6)', backdropFilter: 'blur(8px)', flexWrap: 'wrap', justifyContent: 'center' }}>
           {currentTime && (
-            <div className="hide-on-mobile" style={{ background: '#fff', padding: '0.3rem', borderRadius: '50%', boxShadow: '0 2px 10px rgba(0,0,0,0.05)' }}>
-              <Clock value={currentTime} size={45} renderNumbers={false} secondHandWidth={2} />
+            <div className="hide-on-mobile">
+              <DevClock time={currentTime} size={150} />
             </div>
           )}
           <div style={{ textAlign: 'right' }}>
-            <div className="clock-time">
+            <div style={{ fontSize: '0.8rem', fontWeight: 800, color: 'var(--primary)', letterSpacing: '2px', textTransform: 'uppercase', marginBottom: '0.2rem' }}>Dev Clock</div>
+            <div className="clock-time" style={{ fontSize: '2.5rem' }}>
               {t.time}
-              <span style={{ fontSize: '0.65em', margin: '0 4px', opacity: 0.7, fontWeight: 600 }}>{t.sec}</span>
-              <span style={{ fontSize: '0.55em', fontWeight: 700, opacity: 0.9, letterSpacing: '0px' }}>{t.ampm}</span>
+              <span style={{ fontSize: '0.5em', margin: '0 6px', opacity: 0.7, fontWeight: 600 }}>{t.sec}</span>
+              <span style={{ fontSize: '0.45em', fontWeight: 700, opacity: 0.9, letterSpacing: '0px' }}>{t.ampm}</span>
             </div>
-            <div className="clock-date">
+            <div className="clock-date" style={{ fontSize: '1rem', marginTop: '0.2rem' }}>
               {currentTime ? currentTime.toLocaleDateString('en-US', { weekday: 'long', year: 'numeric', month: 'short', day: 'numeric' }) : 'Loading date...'}
             </div>
           </div>
