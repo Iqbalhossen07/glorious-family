@@ -1,7 +1,7 @@
 'use client'
 import { useEffect, useState } from 'react'
 import { useRouter } from 'next/navigation'
-import { ShoppingCart, Save, ArrowLeft, Calendar, User, List } from 'lucide-react'
+import { ShoppingCart, Save, ArrowLeft, Calendar, User, List, Plus } from 'lucide-react'
 import { SessionService } from '@/services/session.service'
 import { MemberService } from '@/services/member.service'
 import { BazarService } from '@/services/bazar.service'
@@ -20,6 +20,9 @@ export default function AddBazarPage() {
   const [userId, setUserId] = useState('')
   const [itemName, setItemName] = useState('')
   const [amount, setAmount] = useState('')
+  
+  const defaultItems = ['Rice', 'Fish', 'Meat', 'Vegetables', 'Oil', 'Spices', 'Dal', 'Egg', 'Onion', 'Potato', 'Chicken']
+  const [suggestedItems, setSuggestedItems] = useState<string[]>(defaultItems)
 
   useEffect(() => {
     const loadData = async () => {
@@ -41,9 +44,20 @@ export default function AddBazarPage() {
         setSession(currentSession)
 
         if (currentSession) {
-          const membersData = await MemberService.getAllMembers()
+          const [membersData, historyData] = await Promise.all([
+             MemberService.getAllMembers(),
+             BazarService.getBazarHistory(currentSession.id)
+          ])
           const activeMembers = membersData.filter(m => m.status === 'active')
           setMembers(activeMembers)
+
+          const words = historyData.flatMap(h => h.item_name.split(',').map((w: string) => w.trim()).filter((w: string) => w.length > 1))
+          const uniqueFromHistory = Array.from(new Set(words))
+          
+          const savedLocal = localStorage.getItem('customBazarItems')
+          const localItems = savedLocal ? JSON.parse(savedLocal) : []
+
+          setSuggestedItems(prev => Array.from(new Set([...prev, ...uniqueFromHistory, ...localItems])))
         }
       } catch (error) {
         console.error("Error loading members:", error)
@@ -53,6 +67,39 @@ export default function AddBazarPage() {
     }
     loadData()
   }, [])
+
+  const handleChipClick = (item: string) => {
+    setItemName(prev => {
+      if (!prev) return item
+      const parts = prev.split(',').map(p => p.trim()).filter(Boolean)
+      if (parts.includes(item)) return prev // avoid duplicate
+      return prev.endsWith(', ') ? prev + item : prev + ', ' + item
+    })
+  }
+
+  const handleAddNewItem = async () => {
+    const { value: newItem } = await Swal.fire({
+      title: 'Add New Item',
+      input: 'text',
+      inputLabel: 'Item Name',
+      inputPlaceholder: 'e.g., Banana',
+      showCancelButton: true,
+      confirmButtonColor: 'var(--primary)',
+      inputValidator: (value) => {
+        if (!value) return 'You need to write something!'
+      }
+    })
+
+    if (newItem) {
+      const trimmed = newItem.trim()
+      setSuggestedItems(prev => {
+        const updated = Array.from(new Set([...prev, trimmed]))
+        localStorage.setItem('customBazarItems', JSON.stringify(updated.filter(i => !defaultItems.includes(i))))
+        return updated
+      })
+      handleChipClick(trimmed)
+    }
+  }
 
   const handleSave = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -148,16 +195,59 @@ export default function AddBazarPage() {
 
           <div className="input-group">
             <label className="input-label">Items Details</label>
-            <div style={{ display: 'flex', alignItems: 'flex-start', borderRadius: '8px', background: 'rgba(255, 255, 255, 0.3)', backdropFilter: 'blur(16px)', WebkitBackdropFilter: 'blur(16px)', border: '1px solid rgba(255, 255, 255, 0.6)', padding: '0.9rem 1rem' }}>
-              <List size={18} color="var(--text-muted)" style={{ marginTop: '0.1rem', marginRight: '0.5rem' }} />
-              <textarea 
-                className="input-field"
-                value={itemName} 
-                onChange={(e) => setItemName(e.target.value)}
-                placeholder="e.g., Rice, Fish, Vegetables..."
-                style={{ border: 'none', boxShadow: 'none', padding: '0', resize: 'vertical', minHeight: '80px' }}
-                required
-              />
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '0.8rem' }}>
+              <div style={{ display: 'flex', flexWrap: 'wrap', gap: '0.5rem' }}>
+                {suggestedItems.map(item => (
+                  <button
+                    key={item}
+                    type="button"
+                    onClick={() => handleChipClick(item)}
+                    style={{
+                      padding: '0.4rem 0.8rem',
+                      background: itemName.split(',').map(p => p.trim()).includes(item) ? 'var(--primary)' : 'rgba(255, 255, 255, 0.5)',
+                      color: itemName.split(',').map(p => p.trim()).includes(item) ? '#fff' : 'var(--text-main)',
+                      border: '1px solid rgba(0, 0, 0, 0.1)',
+                      borderRadius: '20px',
+                      fontSize: '0.85rem',
+                      cursor: 'pointer',
+                      transition: 'all 0.2s ease'
+                    }}
+                  >
+                    {item}
+                  </button>
+                ))}
+                <button
+                  type="button"
+                  onClick={handleAddNewItem}
+                  style={{
+                    padding: '0.4rem 0.8rem',
+                    background: 'rgba(12, 173, 121, 0.1)',
+                    color: 'var(--primary)',
+                    border: '1px dashed var(--primary)',
+                    borderRadius: '20px',
+                    fontSize: '0.85rem',
+                    cursor: 'pointer',
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: '0.2rem',
+                    fontWeight: 600
+                  }}
+                >
+                  <Plus size={14} /> Add Item
+                </button>
+              </div>
+
+              <div style={{ display: 'flex', alignItems: 'flex-start', borderRadius: '8px', background: 'rgba(255, 255, 255, 0.3)', backdropFilter: 'blur(16px)', WebkitBackdropFilter: 'blur(16px)', border: '1px solid rgba(255, 255, 255, 0.6)', padding: '0.9rem 1rem' }}>
+                <List size={18} color="var(--text-muted)" style={{ marginTop: '0.1rem', marginRight: '0.5rem' }} />
+                <textarea 
+                  className="input-field"
+                  value={itemName} 
+                  onChange={(e) => setItemName(e.target.value)}
+                  placeholder="e.g., Rice, Fish, Vegetables..."
+                  style={{ border: 'none', boxShadow: 'none', padding: '0', resize: 'vertical', minHeight: '80px' }}
+                  required
+                />
+              </div>
             </div>
           </div>
 
