@@ -1,5 +1,5 @@
 'use client'
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
 import { Eye, EyeOff, ArrowLeft } from 'lucide-react'
@@ -15,7 +15,21 @@ export default function LoginPage() {
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
   const [showPassword, setShowPassword] = useState(false)
-  const [loading, setLoading] = useState(false)
+  const [loading, setLoading] = useState(true) // Start loading true to prevent flicker
+
+  
+
+  useEffect(() => {
+    AuthService.getSession().then((session) => {
+      if (session) {
+        router.push('/dashboard')
+      } else {
+        setLoading(false)
+      }
+    }).catch(() => {
+      setLoading(false)
+    })
+  }, [router])
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault()

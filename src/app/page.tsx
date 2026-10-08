@@ -1,8 +1,22 @@
+'use client'
+import { useEffect } from 'react'
+import { useRouter } from 'next/navigation'
 import Link from 'next/link'
 import { ArrowRight } from 'lucide-react'
 import Logo from '@/components/Logo'
+import { AuthService } from '@/services/auth.service'
 
 export default function WelcomePage() {
+  const router = useRouter()
+
+  useEffect(() => {
+    AuthService.getSession().then((session) => {
+      if (session) {
+        router.push('/dashboard')
+      }
+    }).catch(() => {})
+  }, [router])
+
   return (
     <main style={{ minHeight: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '1.5rem', background: 'var(--bg-main)' }}>
       
