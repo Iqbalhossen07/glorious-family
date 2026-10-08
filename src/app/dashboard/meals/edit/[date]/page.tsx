@@ -8,6 +8,24 @@ import { MealService } from '@/services/meal.service'
 import { AuthService } from '@/services/auth.service'
 import Swal from 'sweetalert2'
 
+const MealInput = ({ value, onChange }: { value: number, onChange: (val: string) => void }) => {
+  const handleDec = () => {
+    let num = Number(value || 0)
+    if (num >= 0.5) onChange((num - 0.5).toString())
+  }
+  const handleInc = () => {
+    let num = Number(value || 0)
+    onChange((num + 0.5).toString())
+  }
+  return (
+    <div style={{ display: 'flex', alignItems: 'center', background: 'rgba(255,255,255,0.7)', border: '1px solid rgba(0,0,0,0.05)', borderRadius: '8px', overflow: 'hidden' }}>
+      <button onClick={handleDec} disabled={Number(value || 0) <= 0} type="button" style={{ padding: '0.4rem 0.8rem', background: 'transparent', border: 'none', cursor: Number(value || 0) <= 0 ? 'not-allowed' : 'pointer', color: 'var(--primary)', fontWeight: 'bold', fontSize: '1.2rem', opacity: Number(value || 0) <= 0 ? 0.3 : 1 }}>-</button>
+      <input type="number" step="0.5" min="0" value={value === 0 ? '' : value} onChange={(e) => onChange(e.target.value)} style={{ width: '100%', textAlign: 'center', border: 'none', background: 'transparent', outline: 'none', fontSize: '1rem', fontWeight: 600, WebkitAppearance: 'none', margin: 0, padding: 0 }} placeholder="0" className="meal-input-hide-arrows" />
+      <button onClick={handleInc} type="button" style={{ padding: '0.4rem 0.8rem', background: 'transparent', border: 'none', cursor: 'pointer', color: 'var(--primary)', fontWeight: 'bold', fontSize: '1.2rem' }}>+</button>
+    </div>
+  )
+}
+
 type MealState = {
   [userId: string]: { breakfast: number, lunch: number, dinner: number }
 }
@@ -173,36 +191,21 @@ export default function EditMealPage() {
                 {member.name}
               </div>
               <div>
-                <input 
-                  type="number" 
-                  step="0.5" 
-                  min="0"
-                  value={mealData[member.id]?.breakfast === 0 ? '' : mealData[member.id]?.breakfast}
-                  onChange={(e) => handleInputChange(member.id, 'breakfast', e.target.value)}
-                  placeholder="0"
-                  className="meal-input"
+                <MealInput 
+                  value={mealData[member.id]?.breakfast} 
+                  onChange={(val) => handleInputChange(member.id, 'breakfast', val)} 
                 />
               </div>
               <div>
-                <input 
-                  type="number" 
-                  step="0.5" 
-                  min="0"
-                  value={mealData[member.id]?.lunch === 0 ? '' : mealData[member.id]?.lunch}
-                  onChange={(e) => handleInputChange(member.id, 'lunch', e.target.value)}
-                  placeholder="0"
-                  className="meal-input"
+                <MealInput 
+                  value={mealData[member.id]?.lunch} 
+                  onChange={(val) => handleInputChange(member.id, 'lunch', val)} 
                 />
               </div>
               <div>
-                <input 
-                  type="number" 
-                  step="0.5" 
-                  min="0"
-                  value={mealData[member.id]?.dinner === 0 ? '' : mealData[member.id]?.dinner}
-                  onChange={(e) => handleInputChange(member.id, 'dinner', e.target.value)}
-                  placeholder="0"
-                  className="meal-input"
+                <MealInput 
+                  value={mealData[member.id]?.dinner} 
+                  onChange={(val) => handleInputChange(member.id, 'dinner', val)} 
                 />
               </div>
             </div>
@@ -219,38 +222,23 @@ export default function EditMealPage() {
               <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: '0.8rem' }}>
                 <div>
                   <div style={{ fontSize: '0.75rem', color: 'var(--text-muted)', textAlign: 'center', marginBottom: '0.4rem', fontWeight: 600 }}>Breakfast</div>
-                  <input 
-                    type="number" 
-                    step="0.5" 
-                    min="0"
-                    value={mealData[member.id]?.breakfast === 0 ? '' : mealData[member.id]?.breakfast}
-                    onChange={(e) => handleInputChange(member.id, 'breakfast', e.target.value)}
-                    placeholder="0"
-                    className="meal-input"
+                  <MealInput 
+                    value={mealData[member.id]?.breakfast} 
+                    onChange={(val) => handleInputChange(member.id, 'breakfast', val)} 
                   />
                 </div>
                 <div>
                   <div style={{ fontSize: '0.75rem', color: 'var(--text-muted)', textAlign: 'center', marginBottom: '0.4rem', fontWeight: 600 }}>Lunch</div>
-                  <input 
-                    type="number" 
-                    step="0.5" 
-                    min="0"
-                    value={mealData[member.id]?.lunch === 0 ? '' : mealData[member.id]?.lunch}
-                    onChange={(e) => handleInputChange(member.id, 'lunch', e.target.value)}
-                    placeholder="0"
-                    className="meal-input"
+                  <MealInput 
+                    value={mealData[member.id]?.lunch} 
+                    onChange={(val) => handleInputChange(member.id, 'lunch', val)} 
                   />
                 </div>
                 <div>
                   <div style={{ fontSize: '0.75rem', color: 'var(--text-muted)', textAlign: 'center', marginBottom: '0.4rem', fontWeight: 600 }}>Dinner</div>
-                  <input 
-                    type="number" 
-                    step="0.5" 
-                    min="0"
-                    value={mealData[member.id]?.dinner === 0 ? '' : mealData[member.id]?.dinner}
-                    onChange={(e) => handleInputChange(member.id, 'dinner', e.target.value)}
-                    placeholder="0"
-                    className="meal-input"
+                  <MealInput 
+                    value={mealData[member.id]?.dinner} 
+                    onChange={(val) => handleInputChange(member.id, 'dinner', val)} 
                   />
                 </div>
               </div>
