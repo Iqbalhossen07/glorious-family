@@ -26,14 +26,11 @@ export default function MealHistoryPage() {
     try {
       setLoading(true)
       const [membersData, mealsData] = await Promise.all([
-        MemberService.getAllMembers(),
+        MemberService.getMembersForSession(session),
         MealService.getMealHistory(session.id)
       ])
       
-      const relevantMembers = membersData.filter(m => 
-        m.status === 'active' || mealsData.some((meal: any) => meal.user_id === m.id)
-      )
-      setMembers(relevantMembers)
+      setMembers(membersData)
       
       // Group meals by date
       const grouped: { [date: string]: any[] } = {}

@@ -27,15 +27,25 @@ const getUniqueItems = (items: string[]) => {
   return unique
 }
 
+import { useSessionContext } from '@/context/SessionContext'
+
 export default function AddBazarPage() {
   const router = useRouter()
+  const { selectedSession, currentActiveSession } = useSessionContext()
   const [session, setSession] = useState<any>(null)
   const [user, setUser] = useState<any>(null)
   const [members, setMembers] = useState<any[]>([])
   const [loading, setLoading] = useState(true)
 
   // Form State
-  const [date, setDate] = useState(new Date().toISOString().split('T')[0])
+  const [date, setDate] = useState(() => {
+    if (selectedSession && currentActiveSession && selectedSession.id !== currentActiveSession.id) {
+      const sDate = new Date(selectedSession.start_date)
+      const lastDay = new Date(sDate.getFullYear(), sDate.getMonth() + 1, 0)
+      return `${lastDay.getFullYear()}-${String(lastDay.getMonth() + 1).padStart(2, '0')}-${String(lastDay.getDate()).padStart(2, '0')}`
+    }
+    return new Date().toISOString().split('T')[0]
+  })
   const [userId, setUserId] = useState('')
   const [itemName, setItemName] = useState('')
   const [amount, setAmount] = useState('')
@@ -43,9 +53,22 @@ export default function AddBazarPage() {
   const defaultItems = ['Rice', 'Fish', 'Meat', 'Vegetables', 'Oil', 'Spices', 'Dal', 'Egg', 'Onion', 'Potato', 'Chicken']
   const [suggestedItems, setSuggestedItems] = useState<string[]>(defaultItems)
 
+  // Sync date when selectedSession changes
+  useEffect(() => {
+    if (selectedSession && currentActiveSession && selectedSession.id !== currentActiveSession.id) {
+      const sDate = new Date(selectedSession.start_date)
+      const lastDay = new Date(sDate.getFullYear(), sDate.getMonth() + 1, 0)
+      const dateStr = `${lastDay.getFullYear()}-${String(lastDay.getMonth() + 1).padStart(2, '0')}-${String(lastDay.getDate()).padStart(2, '0')}`
+      setDate(dateStr)
+    } else if (selectedSession && currentActiveSession && selectedSession.id === currentActiveSession.id) {
+      setDate(new Date().toISOString().split('T')[0])
+    }
+  }, [selectedSession, currentActiveSession])
+
   useEffect(() => {
     const loadData = async () => {
       try {
+        setLoading(true)
         const authSession = await AuthService.getSession()
         const currentUser = await AuthService.getCurrentUser()
         if (currentUser?.status === 'inactive') {
@@ -55,20 +78,29 @@ export default function AddBazarPage() {
         }
 
         setUser(authSession?.user)
-        if (authSession?.user?.id) {
-          setUserId(authSession.user.id)
+
+        let targetSession = await SessionService.getSessionForDate(date)
+        if (!targetSession && selectedSession) {
+          targetSession = selectedSession
+        }
+        if (!targetSession) {
+          targetSession = await SessionService.getCurrentSession()
         }
 
-        const currentSession = await SessionService.getCurrentSession()
-        setSession(currentSession)
+        setSession(targetSession)
 
-        if (currentSession) {
-          const [membersData, historyData] = await Promise.all([
-             MemberService.getAllMembers(),
-             BazarService.getBazarHistory(currentSession.id)
+        if (targetSession) {
+          const [sessionMembers, historyData] = await Promise.all([
+             MemberService.getMembersForSession(targetSession),
+             BazarService.getBazarHistory(targetSession.id)
           ])
-          const activeMembers = membersData.filter(m => m.status === 'active')
-          setMembers(activeMembers)
+          setMembers(sessionMembers)
+          
+          if (authSession?.user?.id && sessionMembers.some(m => m.id === authSession.user.id)) {
+            setUserId(prev => prev || authSession.user.id)
+          } else {
+            setUserId(prev => sessionMembers.some(m => m.id === prev) ? prev : (sessionMembers[0]?.id || ''))
+          }
 
           const words = historyData.flatMap(h => h.item_name.split(','))
           const savedLocal = localStorage.getItem('customBazarItems')
@@ -89,7 +121,7 @@ export default function AddBazarPage() {
       }
     }
     loadData()
-  }, [])
+  }, [date, selectedSession])
 
   const handleChipClick = (item: string) => {
     setItemName(prev => {
@@ -240,7 +272,9 @@ export default function AddBazarPage() {
               >
                 <option value="" disabled>Select Member</option>
                 {members.map(m => (
-                  <option key={m.id} value={m.id}>{m.name}</option>
+                  <option key={m.id} value={m.id}>
+                    {m.name}{m.status === 'inactive' ? ' (Inactive)' : ''}
+                  </option>
                 ))}
               </select>
             </div>

@@ -59,17 +59,28 @@ export default function EditBazarPage() {
 
         setUser(authSession?.user)
 
-        const currentSession = await SessionService.getCurrentSession()
-        setSession(currentSession)
+        const bazarData = await BazarService.getBazarById(bazarId)
+        if (bazarData) {
+          setDate(bazarData.date || new Date().toISOString().split('T')[0])
+          setUserId(bazarData.user_id)
+          setItemName(bazarData.item_name)
+          setAmount(bazarData.amount)
 
-        if (currentSession) {
-          const [membersData, bazarData, historyData] = await Promise.all([
-            MemberService.getAllMembers(),
-            BazarService.getBazarById(bazarId),
-            BazarService.getBazarHistory(currentSession.id)
-          ])
-          
-          setMembers(membersData)
+          let targetSession = null
+          if (bazarData.session_id) {
+            targetSession = await SessionService.getSessionById(bazarData.session_id)
+          }
+          if (!targetSession) {
+            targetSession = await SessionService.getSessionForDate(bazarData.date)
+          }
+          setSession(targetSession)
+
+          if (targetSession) {
+            const [sessionMembers, historyData] = await Promise.all([
+              MemberService.getMembersForSession(targetSession),
+              BazarService.getBazarHistory(targetSession.id)
+            ])
+            setMembers(sessionMembers)
 
           const words = historyData.flatMap(h => h.item_name.split(','))
           
@@ -79,16 +90,10 @@ export default function EditBazarPage() {
           const hiddenLocal = localStorage.getItem('hiddenBazarItems')
           const hiddenItems = hiddenLocal ? JSON.parse(hiddenLocal) : []
 
-          setSuggestedItems(prev => {
-            const merged = getUniqueItems([...prev, ...words, ...localItems])
-            return merged.filter(i => !hiddenItems.includes(i.toLowerCase()))
-          })
-
-          if (bazarData) {
-            setDate(bazarData.date || new Date().toISOString().split('T')[0])
-            setUserId(bazarData.user_id)
-            setItemName(bazarData.item_name)
-            setAmount(bazarData.amount)
+            setSuggestedItems(prev => {
+              const merged = getUniqueItems([...prev, ...words, ...localItems])
+              return merged.filter(i => !hiddenItems.includes(i.toLowerCase()))
+            })
           }
         }
       } catch (error) {
@@ -242,7 +247,9 @@ export default function EditBazarPage() {
               >
                 <option value="" disabled>Select Member</option>
                 {members.map(m => (
-                  <option key={m.id} value={m.id}>{m.name}</option>
+                  <option key={m.id} value={m.id}>
+                    {m.name}{m.status === 'inactive' ? ' (Inactive)' : ''}
+                  </option>
                 ))}
               </select>
             </div>

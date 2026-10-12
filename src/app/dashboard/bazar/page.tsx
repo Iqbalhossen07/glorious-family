@@ -26,14 +26,11 @@ export default function BazarHistoryPage() {
     try {
       setLoading(true)
       const [membersData, bazarData] = await Promise.all([
-        MemberService.getAllMembers(),
+        MemberService.getMembersForSession(session),
         BazarService.getBazarHistory(session.id)
       ])
       
-      const relevantMembers = membersData.filter(m => 
-        m.status === 'active' || bazarData.some((b: any) => b.user_id === m.id)
-      )
-      setMembers(relevantMembers)
+      setMembers(membersData)
       setBazarHistory(bazarData)
       
       const total = bazarData.reduce((sum, item) => sum + Number(item.amount), 0)

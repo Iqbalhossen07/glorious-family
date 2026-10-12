@@ -55,29 +55,25 @@ export default function EditMealPage() {
 
         setUser(authSession?.user)
 
-        const currentSession = await SessionService.getCurrentSession()
-        setSession(currentSession)
+        let targetSession = await SessionService.getSessionForDate(dateParam)
+        if (!targetSession) {
+          targetSession = await SessionService.getCurrentSession()
+        }
+        setSession(targetSession)
 
-        if (currentSession) {
-          const [membersData, mealsData] = await Promise.all([
-            MemberService.getAllMembers(),
-            MealService.getMealHistory(currentSession.id)
+        if (targetSession) {
+          const [sessionMembers, mealsData] = await Promise.all([
+            MemberService.getMembersForSession(targetSession),
+            MealService.getMealHistory(targetSession.id)
           ])
 
           // Find meals for the specific date
           const dateMeals = mealsData.filter(m => m.date === dateParam)
-
-          // Filter members: active OR has existing non-zero meal for this date
-          const relevantMembers = membersData.filter(m => {
-            const hasMeal = dateMeals.some(dm => dm.user_id === m.id && (dm.breakfast > 0 || dm.lunch > 0 || dm.dinner > 0))
-            return m.status === 'active' || hasMeal
-          })
-          
-          setMembers(relevantMembers)
+          setMembers(sessionMembers)
 
           // Initialize meal data
           const initialMeals: MealState = {}
-          relevantMembers.forEach((m) => {
+          sessionMembers.forEach((m: any) => {
             const userMeal = dateMeals.find(dm => dm.user_id === m.id)
             initialMeals[m.id] = { 
               breakfast: userMeal?.breakfast || 0, 

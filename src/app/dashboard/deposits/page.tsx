@@ -26,14 +26,11 @@ export default function DepositHistoryPage() {
     try {
       setLoading(true)
       const [membersData, depositData] = await Promise.all([
-        MemberService.getAllMembers(),
+        MemberService.getMembersForSession(session),
         DepositService.getDepositHistory(session.id)
       ])
       
-      const relevantMembers = membersData.filter(m => 
-        m.status === 'active' || depositData.some((d: any) => d.user_id === m.id)
-      )
-      setMembers(relevantMembers)
+      setMembers(membersData)
       setDepositHistory(depositData)
       
       const total = depositData.reduce((sum, item) => sum + Number(item.amount), 0)

@@ -6,6 +6,7 @@ import { SessionService } from '@/services/session.service'
 import { MemberService } from '@/services/member.service'
 import { MealService } from '@/services/meal.service'
 import { AuthService } from '@/services/auth.service'
+import { useSessionContext } from '@/context/SessionContext'
 import Swal from 'sweetalert2'
 
 const MealInput = ({ value, onChange }: { value: number, onChange: (val: string) => void }) => {
@@ -32,17 +33,33 @@ type MealState = {
 
 export default function MealsPage() {
   const router = useRouter()
+  const { selectedSession, currentActiveSession } = useSessionContext()
   const [session, setSession] = useState<any>(null)
   const [user, setUser] = useState<any>(null)
   const [members, setMembers] = useState<any[]>([])
   const [loading, setLoading] = useState(true)
 
-  const [date, setDate] = useState(new Date().toISOString().split('T')[0])
+  const [date, setDate] = useState(() => {
+    if (selectedSession && currentActiveSession && selectedSession.id !== currentActiveSession.id) {
+      return selectedSession.start_date
+    }
+    return new Date().toISOString().split('T')[0]
+  })
   const [mealData, setMealData] = useState<MealState>({})
+
+  // Sync date when selectedSession changes
+  useEffect(() => {
+    if (selectedSession && currentActiveSession && selectedSession.id !== currentActiveSession.id) {
+      setDate(selectedSession.start_date)
+    } else if (selectedSession && currentActiveSession && selectedSession.id === currentActiveSession.id) {
+      setDate(new Date().toISOString().split('T')[0])
+    }
+  }, [selectedSession, currentActiveSession])
 
   useEffect(() => {
     const loadData = async () => {
       try {
+        setLoading(true)
         const authSession = await AuthService.getSession()
         const currentUser = await AuthService.getCurrentUser()
         if (currentUser?.status === 'inactive') {
@@ -53,16 +70,22 @@ export default function MealsPage() {
 
         setUser(authSession?.user)
 
-        const currentSession = await SessionService.getCurrentSession()
-        setSession(currentSession)
+        let targetSession = await SessionService.getSessionForDate(date)
+        if (!targetSession && selectedSession) {
+          targetSession = selectedSession
+        }
+        if (!targetSession) {
+          targetSession = await SessionService.getCurrentSession()
+        }
 
-        if (currentSession) {
-          const membersData = await MemberService.getAllMembers()
-          const activeMembers = membersData.filter(m => m.status === 'active')
-          setMembers(activeMembers)
+        setSession(targetSession)
+
+        if (targetSession) {
+          const sessionMembers = await MemberService.getMembersForSession(targetSession)
+          setMembers(sessionMembers)
 
           // Fetch existing meals to auto-increment the date
-          const existingMeals = await MealService.getMealHistory(currentSession.id)
+          const existingMeals = await MealService.getMealHistory(targetSession.id)
           if (existingMeals && existingMeals.length > 0) {
             const latestMealDate = existingMeals[0].date
             const [yyyy, mm, dd] = latestMealDate.split('-')
@@ -74,11 +97,13 @@ export default function MealsPage() {
           }
 
           // Initialize meal data with defaults
-          const initialMeals: MealState = {}
-          activeMembers.forEach((m) => {
-            initialMeals[m.id] = { breakfast: 0.5, lunch: 1, dinner: 1 }
+          setMealData(prev => {
+            const initialMeals: MealState = {}
+            sessionMembers.forEach((m) => {
+              initialMeals[m.id] = prev[m.id] || { breakfast: 0.5, lunch: 1, dinner: 1 }
+            })
+            return initialMeals
           })
-          setMealData(initialMeals)
         }
       } catch (error) {
         console.error("Error loading members:", error)
@@ -87,7 +112,7 @@ export default function MealsPage() {
       }
     }
     loadData()
-  }, [])
+  }, [date, selectedSession])
 
   const handleInputChange = (userId: string, field: 'breakfast' | 'lunch' | 'dinner', value: string) => {
     let numValue = value === '' ? 0 : parseFloat(value)

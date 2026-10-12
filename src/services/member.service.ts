@@ -27,6 +27,57 @@ export const MemberService = {
     })
   },
 
+  async getMembersForSession(session: any) {
+    if (!session) return []
+
+    const allMembers = await this.getAllMembers()
+    
+    const sessionDate = new Date(session.start_date)
+    const endOfMonth = new Date(sessionDate.getFullYear(), sessionDate.getMonth() + 1, 0, 23, 59, 59, 999)
+
+    // Fetch all user IDs with activity in this session
+    const [mealsRes, bazarRes, depositsRes, fixedRes] = await Promise.all([
+      supabase.from('daily_meals').select('user_id').eq('session_id', session.id),
+      supabase.from('bazar_expenses').select('user_id').eq('session_id', session.id),
+      supabase.from('deposits').select('user_id').eq('session_id', session.id),
+      supabase.from('fixed_expenses').select('user_id').eq('session_id', session.id)
+    ])
+
+    const activeInSessionIds = new Set([
+      ...(mealsRes.data?.map((m: any) => m.user_id) || []),
+      ...(bazarRes.data?.map((b: any) => b.user_id) || []),
+      ...(depositsRes.data?.map((d: any) => d.user_id) || []),
+      ...(fixedRes.data?.map((f: any) => f.user_id) || [])
+    ])
+
+    const filtered = allMembers.filter((m: any) => {
+      const memberCreatedDate = new Date(m.created_at)
+      // Member must have been created on or before the end of the session month
+      if (memberCreatedDate > endOfMonth) {
+        return false
+      }
+
+      // If member has any activity in this session, always include (even if currently inactive)
+      if (activeInSessionIds.has(m.id)) {
+        return true
+      }
+
+      // If session is closed, only include members with activity
+      if (session.status === 'closed') {
+        return false
+      }
+
+      // In open sessions, include currently active members
+      return m.status === 'active'
+    })
+
+    return filtered.sort((a: any, b: any) => {
+      if (a.role === 'manager' && b.role !== 'manager') return -1
+      if (a.role !== 'manager' && b.role === 'manager') return 1
+      return 0
+    })
+  },
+
   async toggleMemberStatus(userId: string, currentStatus: string) {
     const newStatus = currentStatus === 'active' ? 'inactive' : 'active'
     

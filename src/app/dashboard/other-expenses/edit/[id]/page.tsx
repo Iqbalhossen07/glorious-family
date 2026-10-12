@@ -37,22 +37,25 @@ export default function EditFixedExpensePage() {
 
         setUser(authSession?.user)
 
-        const currentSession = await SessionService.getCurrentSession()
-        setSession(currentSession)
+        const expenseData = await FixedExpenseService.getFixedExpenseById(expenseId)
+        if (expenseData) {
+          setDate(expenseData.date || new Date().toISOString().split('T')[0])
+          setUserId(expenseData.user_id ? expenseData.user_id : 'MESS_FUND')
+          setItemName(expenseData.item_name)
+          setAmount(expenseData.amount)
 
-        if (currentSession) {
-          const [membersData, expenseData] = await Promise.all([
-            MemberService.getAllMembers(),
-            FixedExpenseService.getFixedExpenseById(expenseId)
-          ])
-          
-          setMembers(membersData)
+          let targetSession = null
+          if (expenseData.session_id) {
+            targetSession = await SessionService.getSessionById(expenseData.session_id)
+          }
+          if (!targetSession) {
+            targetSession = await SessionService.getSessionForDate(expenseData.date)
+          }
+          setSession(targetSession)
 
-          if (expenseData) {
-            setDate(expenseData.date || new Date().toISOString().split('T')[0])
-            setUserId(expenseData.user_id ? expenseData.user_id : 'MESS_FUND')
-            setItemName(expenseData.item_name)
-            setAmount(expenseData.amount)
+          if (targetSession) {
+            const sessionMembers = await MemberService.getMembersForSession(targetSession)
+            setMembers(sessionMembers)
           }
         }
       } catch (error) {
@@ -164,7 +167,9 @@ export default function EditFixedExpensePage() {
                 <option value="MESS_FUND">Mess Fund (Manager Balance)</option>
                 <optgroup label="Members">
                   {members.map(m => (
-                    <option key={m.id} value={m.id}>{m.name}</option>
+                    <option key={m.id} value={m.id}>
+                      {m.name}{m.status === 'inactive' ? ' (Inactive)' : ''}
+                    </option>
                   ))}
                 </optgroup>
               </select>

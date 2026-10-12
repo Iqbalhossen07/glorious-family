@@ -6,24 +6,46 @@ import { SessionService } from '@/services/session.service'
 import { MemberService } from '@/services/member.service'
 import { FixedExpenseService } from '@/services/fixed_expense.service'
 import { AuthService } from '@/services/auth.service'
+import { useSessionContext } from '@/context/SessionContext'
 import Swal from 'sweetalert2'
 
 export default function AddFixedExpensePage() {
   const router = useRouter()
+  const { selectedSession, currentActiveSession } = useSessionContext()
   const [session, setSession] = useState<any>(null)
   const [user, setUser] = useState<any>(null)
   const [members, setMembers] = useState<any[]>([])
   const [loading, setLoading] = useState(true)
 
   // Form State
-  const [date, setDate] = useState(new Date().toISOString().split('T')[0])
+  const [date, setDate] = useState(() => {
+    if (selectedSession && currentActiveSession && selectedSession.id !== currentActiveSession.id) {
+      const sDate = new Date(selectedSession.start_date)
+      const lastDay = new Date(sDate.getFullYear(), sDate.getMonth() + 1, 0)
+      return `${lastDay.getFullYear()}-${String(lastDay.getMonth() + 1).padStart(2, '0')}-${String(lastDay.getDate()).padStart(2, '0')}`
+    }
+    return new Date().toISOString().split('T')[0]
+  })
   const [userId, setUserId] = useState('MESS_FUND') // Default to Mess Fund
   const [itemName, setItemName] = useState('')
   const [amount, setAmount] = useState('')
 
+  // Sync date when selectedSession changes
+  useEffect(() => {
+    if (selectedSession && currentActiveSession && selectedSession.id !== currentActiveSession.id) {
+      const sDate = new Date(selectedSession.start_date)
+      const lastDay = new Date(sDate.getFullYear(), sDate.getMonth() + 1, 0)
+      const dateStr = `${lastDay.getFullYear()}-${String(lastDay.getMonth() + 1).padStart(2, '0')}-${String(lastDay.getDate()).padStart(2, '0')}`
+      setDate(dateStr)
+    } else if (selectedSession && currentActiveSession && selectedSession.id === currentActiveSession.id) {
+      setDate(new Date().toISOString().split('T')[0])
+    }
+  }, [selectedSession, currentActiveSession])
+
   useEffect(() => {
     const loadData = async () => {
       try {
+        setLoading(true)
         const authSession = await AuthService.getSession()
         const currentUser = await AuthService.getCurrentUser()
         if (currentUser?.status === 'inactive') {
@@ -34,13 +56,19 @@ export default function AddFixedExpensePage() {
 
         setUser(authSession?.user)
 
-        const currentSession = await SessionService.getCurrentSession()
-        setSession(currentSession)
+        let targetSession = await SessionService.getSessionForDate(date)
+        if (!targetSession && selectedSession) {
+          targetSession = selectedSession
+        }
+        if (!targetSession) {
+          targetSession = await SessionService.getCurrentSession()
+        }
 
-        if (currentSession) {
-          const membersData = await MemberService.getAllMembers()
-          const activeMembers = membersData.filter(m => m.status === 'active')
-          setMembers(activeMembers)
+        setSession(targetSession)
+
+        if (targetSession) {
+          const sessionMembers = await MemberService.getMembersForSession(targetSession)
+          setMembers(sessionMembers)
         }
       } catch (error) {
         console.error("Error loading members:", error)
@@ -49,7 +77,7 @@ export default function AddFixedExpensePage() {
       }
     }
     loadData()
-  }, [])
+  }, [date, selectedSession])
 
   const handleSave = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -155,7 +183,9 @@ export default function AddFixedExpensePage() {
                 <option value="MESS_FUND">Mess Fund (Manager Balance)</option>
                 <optgroup label="Members">
                   {members.map(m => (
-                    <option key={m.id} value={m.id}>{m.name}</option>
+                    <option key={m.id} value={m.id}>
+                      {m.name}{m.status === 'inactive' ? ' (Inactive)' : ''}
+                    </option>
                   ))}
                 </optgroup>
               </select>

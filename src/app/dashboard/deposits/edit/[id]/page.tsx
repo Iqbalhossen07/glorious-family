@@ -36,21 +36,24 @@ export default function EditDepositPage() {
 
         setUser(authSession?.user)
 
-        const currentSession = await SessionService.getCurrentSession()
-        setSession(currentSession)
+        const depositData = await DepositService.getDepositById(depositId)
+        if (depositData) {
+          setDate(depositData.date || new Date().toISOString().split('T')[0])
+          setUserId(depositData.user_id)
+          setAmount(depositData.amount)
 
-        if (currentSession) {
-          const [membersData, depositData] = await Promise.all([
-            MemberService.getAllMembers(),
-            DepositService.getDepositById(depositId)
-          ])
-          
-          setMembers(membersData)
+          let targetSession = null
+          if (depositData.session_id) {
+            targetSession = await SessionService.getSessionById(depositData.session_id)
+          }
+          if (!targetSession) {
+            targetSession = await SessionService.getSessionForDate(depositData.date)
+          }
+          setSession(targetSession)
 
-          if (depositData) {
-            setDate(depositData.date || new Date().toISOString().split('T')[0])
-            setUserId(depositData.user_id)
-            setAmount(depositData.amount)
+          if (targetSession) {
+            const sessionMembers = await MemberService.getMembersForSession(targetSession)
+            setMembers(sessionMembers)
           }
         }
       } catch (error) {
@@ -143,7 +146,9 @@ export default function EditDepositPage() {
               >
                 <option value="" disabled>Select Member</option>
                 {members.map(m => (
-                  <option key={m.id} value={m.id}>{m.name}</option>
+                  <option key={m.id} value={m.id}>
+                    {m.name}{m.status === 'inactive' ? ' (Inactive)' : ''}
+                  </option>
                 ))}
               </select>
             </div>

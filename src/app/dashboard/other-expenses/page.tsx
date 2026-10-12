@@ -26,16 +26,13 @@ export default function FixedExpenseHistoryPage() {
     try {
       setLoading(true)
       const [membersData, expenseData] = await Promise.all([
-        MemberService.getAllMembers(),
+        MemberService.getMembersForSession(session),
         FixedExpenseService.getFixedExpenseHistory(session.id)
       ])
       
       const filteredExpenses = expenseData.filter((e: any) => e.item_name !== 'Room Rent')
       
-      const relevantMembers = membersData.filter(m => 
-        m.status === 'active' || filteredExpenses.some((e: any) => e.user_id === m.id)
-      )
-      setMembers(relevantMembers)
+      setMembers(membersData)
       setExpenseHistory(filteredExpenses)
       
       const total = filteredExpenses.reduce((sum: any, item: any) => sum + Number(item.amount), 0)

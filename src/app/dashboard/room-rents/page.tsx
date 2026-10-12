@@ -59,38 +59,20 @@ export default function RoomRentsPage() {
         setSession(targetSession)
 
         if (targetSession) {
-          const { data: existingRents, error } = await supabase
-            .from('fixed_expenses')
-            .select('*')
-            .eq('session_id', targetSession.id)
-            .eq('item_name', 'Room Rent')
+          const [existingRentsRes, sessionMembers] = await Promise.all([
+            supabase
+              .from('fixed_expenses')
+              .select('*')
+              .eq('session_id', targetSession.id)
+              .eq('item_name', 'Room Rent'),
+            MemberService.getMembersForSession(targetSession)
+          ])
 
-          const [ {data: meals}, {data: bazar}, {data: deposits}, {data: others} ] = await Promise.all([
-             supabase.from('daily_meals').select('user_id').eq('session_id', targetSession.id),
-             supabase.from('bazar_expenses').select('user_id').eq('session_id', targetSession.id),
-             supabase.from('deposits').select('user_id').eq('session_id', targetSession.id),
-             supabase.from('fixed_expenses').select('user_id').eq('session_id', targetSession.id).neq('item_name', 'Room Rent'),
-          ])
-          
-          const activeIds = new Set([
-            ...(meals?.map((m: any) => m.user_id) || []),
-            ...(bazar?.map((m: any) => m.user_id) || []),
-            ...(deposits?.map((m: any) => m.user_id) || []),
-            ...(others?.map((m: any) => m.user_id) || []),
-            ...(existingRents?.map((m: any) => m.user_id) || [])
-          ])
-          
-          const filteredMembers = allMembers.filter(m => {
-             if (targetSession.status === 'open') {
-               return m.status === 'active' || activeIds.has(m.id)
-             }
-             return activeIds.has(m.id)
-          })
-          
-          setRelevantMembers(filteredMembers)
+          const existingRents = existingRentsRes.data || []
+          setRelevantMembers(sessionMembers)
 
           const initialRents: RoomRentState = {}
-          filteredMembers.forEach((m) => {
+          sessionMembers.forEach((m) => {
             const memberRent = existingRents?.find(r => r.user_id === m.id)
             initialRents[m.id] = memberRent ? Number(memberRent.amount) : 1225
           })
