@@ -112,5 +112,77 @@ export const MemberService = {
     if (error2) throw new Error(error2.message)
     
     await ActivityService.logActivity('EDIT', 'MEMBER', 'Manager role transferred')
+  },
+
+  async getMemberAccessibleSessions(memberId: string) {
+    const { data: member } = await supabase.from('users').select('*').eq('id', memberId).single()
+    if (!member || !member.mess_id) return []
+
+    const { data: allSessions, error } = await supabase
+      .from('sessions')
+      .select('*')
+      .eq('mess_id', member.mess_id)
+      .order('start_date', { ascending: true })
+
+    if (error || !allSessions || allSessions.length === 0) return []
+
+    // Fetch all user activity across sessions
+    const [mealsRes, bazarRes, depositsRes, fixedRes] = await Promise.all([
+      supabase.from('daily_meals').select('session_id').eq('user_id', memberId),
+      supabase.from('bazar_expenses').select('session_id').eq('user_id', memberId),
+      supabase.from('deposits').select('session_id').eq('user_id', memberId),
+      supabase.from('fixed_expenses').select('session_id').eq('user_id', memberId)
+    ])
+
+    const activeSessionIds = new Set([
+      ...(mealsRes.data?.map((m: any) => m.session_id) || []),
+      ...(bazarRes.data?.map((b: any) => b.session_id) || []),
+      ...(depositsRes.data?.map((d: any) => d.session_id) || []),
+      ...(fixedRes.data?.map((f: any) => f.session_id) || [])
+    ])
+
+    const memberCreated = new Date(member.created_at)
+
+    if (member.status === 'inactive') {
+      // For inactive members: only from first meal/activity session to last meal/activity session (when they became inactive)
+      const activeIndices = allSessions
+        .map((s, idx) => activeSessionIds.has(s.id) ? idx : -1)
+        .filter(idx => idx !== -1)
+
+      if (activeIndices.length === 0) {
+        const createdIdx = allSessions.findIndex(s => {
+          const sDate = new Date(s.start_date)
+          const endOfMonth = new Date(sDate.getFullYear(), sDate.getMonth() + 1, 0, 23, 59, 59)
+          return memberCreated <= endOfMonth
+        })
+        const targetIdx = createdIdx !== -1 ? createdIdx : allSessions.length - 1
+        return [allSessions[targetIdx]]
+      }
+
+      const firstIdx = Math.min(...activeIndices)
+      const lastIdx = Math.max(...activeIndices)
+
+      // Return sessions from firstIdx to lastIdx in descending order (latest active first)
+      return allSessions.slice(firstIdx, lastIdx + 1).reverse()
+    } else {
+      // For active members: from first meal/activity or created_at up to the latest/active session
+      const activeIndices = allSessions
+        .map((s, idx) => activeSessionIds.has(s.id) ? idx : -1)
+        .filter(idx => idx !== -1)
+
+      let firstIdx = 0
+      if (activeIndices.length > 0) {
+        firstIdx = Math.min(...activeIndices)
+      } else {
+        const createdIdx = allSessions.findIndex(s => {
+          const sDate = new Date(s.start_date)
+          const endOfMonth = new Date(sDate.getFullYear(), sDate.getMonth() + 1, 0, 23, 59, 59)
+          return memberCreated <= endOfMonth
+        })
+        firstIdx = createdIdx !== -1 ? createdIdx : 0
+      }
+
+      return allSessions.slice(firstIdx).reverse()
+    }
   }
 }

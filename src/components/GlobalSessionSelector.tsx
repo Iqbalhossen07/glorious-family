@@ -1,11 +1,17 @@
 'use client'
 
-import React from 'react'
+import { usePathname } from 'next/navigation'
 import { useSessionContext } from '@/context/SessionContext'
 import { Calendar, XCircle, Loader2 } from 'lucide-react'
 
 export default function GlobalSessionSelector() {
+  const pathname = usePathname()
   const { sessions, selectedSession, currentActiveSession, isLoading, changeSession, clearSession } = useSessionContext()
+
+  // Hide global session selector on member profile and invoice pages which manage their own sessions
+  if (pathname && (pathname.match(/^\/dashboard\/members\/[^/]+$/) || pathname.startsWith('/dashboard/invoice/'))) {
+    return null
+  }
 
   if (isLoading) {
     return (

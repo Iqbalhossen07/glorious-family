@@ -101,8 +101,11 @@ export const AnalyticsService = {
 
     const memberTotalGiven = memberTotalDeposit + memberBazar + memberPaidFixedCost
     
+    const isMemberRelevant = relevantUsers.some(u => u.id === memberId)
+    const effectiveSharedExpense = isMemberRelevant ? sharedExpensePerMember : 0
+
     const memberMealCost = memberMeals * mealRate
-    const memberTotalCost = memberMealCost + sharedExpensePerMember + memberRoomRentCost
+    const memberTotalCost = memberMealCost + effectiveSharedExpense + memberRoomRentCost
     
     const balance = memberTotalGiven - memberTotalCost
 
@@ -111,7 +114,9 @@ export const AnalyticsService = {
       totalMessBazar,
       totalMessFixedExpense: totalSharedFixedExpense,
       mealRate,
-      sharedExpensePerMember,
+      sharedExpensePerMember: effectiveSharedExpense,
+      messSharedExpensePerMember: sharedExpensePerMember,
+      isMemberRelevant,
       member: {
         totalMeals: memberMeals,
         totalDeposit: memberTotalDeposit,

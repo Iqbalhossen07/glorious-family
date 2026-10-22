@@ -102,14 +102,17 @@ export default function InvoicePage() {
         const memberPaidFixed = allOtherExpenses.filter(f => f.user_id === userId).reduce((sum, f) => sum + Number(f.amount), 0)
         const memberRoomRent = roomRentsData.filter(f => f.user_id === userId).reduce((sum, f) => sum + Number(f.amount), 0)
         
+        const isMemberRelevant = relevantMembers.some(m => m.id === userId)
+        const effectiveFixedCost = isMemberRelevant ? fixedCostPerMember : 0
+
         const mealCost = memberMeals * mRate
-        const totalCost = mealCost + fixedCostPerMember + memberRoomRent
+        const totalCost = mealCost + effectiveFixedCost + memberRoomRent
         const totalPaid = memberDeposits + memberBazar + memberPaidFixed
 
         setStats({
           totalMeals: memberMeals,
           mealCost: mealCost,
-          fixedCost: fixedCostPerMember,
+          fixedCost: effectiveFixedCost,
           roomRent: memberRoomRent,
           totalCost: totalCost,
           cashDeposit: memberDeposits,

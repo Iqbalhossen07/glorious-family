@@ -1,10 +1,28 @@
 'use client'
 import { useEffect, useState, use } from 'react'
-import { Activity, Calendar, Wallet, ShoppingCart, Utensils, Receipt, TrendingUp, TrendingDown, ArrowLeft } from 'lucide-react'
+import { Activity, Calendar, Wallet, ShoppingCart, Utensils, Receipt, TrendingUp, TrendingDown, ArrowLeft, Loader2 } from 'lucide-react'
 import { AnalyticsService } from '@/services/analytics.service'
 import { MemberService } from '@/services/member.service'
-import { SessionService } from '@/services/session.service'
+import { supabase } from '@/lib/supabase'
 import { useRouter } from 'next/navigation'
+
+const getMonthStrFromSession = (targetSession: any) => {
+  if (!targetSession) return ''
+  const parts = targetSession.session_name?.trim().split(' ')
+  if (parts && parts.length === 2) {
+    const monthName = parts[0]
+    const year = parts[1]
+    const monthDate = new Date(`${monthName} 1, ${year}`)
+    if (!isNaN(monthDate.getTime())) {
+      return `${monthDate.getFullYear()}-${String(monthDate.getMonth() + 1).padStart(2, '0')}`
+    }
+  }
+  if (targetSession.start_date) {
+    const sDate = new Date(targetSession.start_date)
+    return `${sDate.getFullYear()}-${String(sDate.getMonth() + 1).padStart(2, '0')}`
+  }
+  return ''
+}
 
 export default function MemberProfilePage({ params }: { params: Promise<{ id: string }> }) {
   const router = useRouter()
@@ -13,68 +31,87 @@ export default function MemberProfilePage({ params }: { params: Promise<{ id: st
   const memberId = resolvedParams.id
   
   const [member, setMember] = useState<any>(null)
+  const [sessions, setSessions] = useState<any[]>([])
   const [session, setSession] = useState<any>(null)
   const [analytics, setAnalytics] = useState<any>(null)
   const [activities, setActivities] = useState<any[]>([])
   const [loading, setLoading] = useState(true)
-  
-  // Default to current month
-  const [monthStr, setMonthStr] = useState(() => {
-    const today = new Date()
-    return `${today.getFullYear()}-${String(today.getMonth() + 1).padStart(2, '0')}`
-  })
+  const [analyticsLoading, setAnalyticsLoading] = useState(false)
 
-  useEffect(() => {
-    const fetchMember = async () => {
-      const allMembers = await MemberService.getAllMembers()
-      const m = allMembers.find(x => x.id === memberId)
-      if (m) setMember(m)
-    }
-    fetchMember()
-  }, [memberId])
-
-  const loadData = async (currentMonthStr: string) => {
-    setLoading(true)
+  const loadSessionData = async (targetSession: any, targetMemberId: string) => {
     try {
-      const allSessions = await SessionService.getAllSessions()
-      const dateObj = new Date(currentMonthStr + '-01')
-      const targetSessionName = dateObj.toLocaleDateString('en-US', { month: 'long', year: 'numeric' })
-      
-      let targetSession = allSessions.find(s => s.session_name === targetSessionName)
-      if (!targetSession && allSessions.length > 0) {
-        targetSession = allSessions[0]
-      }
-      
-      setSession(targetSession)
-
-      if (targetSession) {
-        const [analyticsData, activityData] = await Promise.all([
-          AnalyticsService.getMemberAnalytics(targetSession.id, memberId, currentMonthStr),
-          AnalyticsService.getMemberActivityLogs(memberId, currentMonthStr)
-        ])
-        setAnalytics(analyticsData)
-        setActivities(activityData)
-      } else {
-        setAnalytics(null)
-        setActivities([])
-      }
+      setAnalyticsLoading(true)
+      const currentMonthStr = getMonthStrFromSession(targetSession)
+      const [analyticsData, activityData] = await Promise.all([
+        AnalyticsService.getMemberAnalytics(targetSession.id, targetMemberId, currentMonthStr),
+        AnalyticsService.getMemberActivityLogs(targetMemberId, currentMonthStr)
+      ])
+      setAnalytics(analyticsData)
+      setActivities(activityData)
     } catch (error) {
-      console.error("Failed to load analytics", error)
+      console.error("Failed to load analytics for session:", error)
     } finally {
-      setLoading(false)
+      setAnalyticsLoading(false)
     }
   }
 
   useEffect(() => {
-    loadData(monthStr)
-  }, [monthStr, memberId])
+    const initPage = async () => {
+      try {
+        setLoading(true)
+        const allMembers = await MemberService.getAllMembers()
+        let m = allMembers.find(x => x.id === memberId)
+        if (!m) {
+          const { data } = await supabase.from('users').select('*').eq('id', memberId).single()
+          m = data
+        }
+        setMember(m)
 
-  if (loading && !analytics) {
-    return <div style={{ color: 'var(--text-muted)' }}>Loading member profile...</div>
+        if (!m) {
+          setLoading(false)
+          return
+        }
+
+        const accessibleSessions = await MemberService.getMemberAccessibleSessions(memberId)
+        setSessions(accessibleSessions)
+
+        if (accessibleSessions.length > 0) {
+          // Defaults to the latest accessible session (e.g. September 2026 for Pinak)
+          const targetSession = accessibleSessions[0]
+          setSession(targetSession)
+          await loadSessionData(targetSession, memberId)
+        } else {
+          setAnalytics(null)
+          setActivities([])
+        }
+      } catch (error) {
+        console.error("Failed to load member profile:", error)
+      } finally {
+        setLoading(false)
+      }
+    }
+
+    initPage()
+  }, [memberId])
+
+  const handleSessionChange = async (sessionId: string) => {
+    const s = sessions.find(x => x.id === sessionId)
+    if (s) {
+      setSession(s)
+      await loadSessionData(s, memberId)
+    }
+  }
+
+  if (loading && !member) {
+    return (
+      <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', color: 'var(--text-muted)', padding: '2rem 0' }}>
+        <Loader2 className="spin" size={20} /> Loading member profile...
+      </div>
+    )
   }
 
   if (!member) {
-    return <div style={{ color: 'var(--text-muted)' }}>Member not found.</div>
+    return <div style={{ color: 'var(--text-muted)', padding: '2rem 0' }}>Member not found.</div>
   }
 
   return (
@@ -87,24 +124,57 @@ export default function MemberProfilePage({ params }: { params: Promise<{ id: st
             <ArrowLeft size={20} />
           </button>
           <div>
-            <h1 style={{ fontSize: '1.75rem', fontWeight: 700, marginBottom: '0.2rem' }}>
-              {member.name}
-            </h1>
-            <p style={{ color: 'var(--text-muted)' }}>{member.name} • {member.role === 'manager' ? 'Manager' : 'Member'}</p>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '0.6rem' }}>
+              <h1 style={{ fontSize: '1.75rem', fontWeight: 700, margin: 0 }}>
+                {member.name}
+              </h1>
+              {member.status === 'inactive' ? (
+                <span style={{ background: '#fee2e2', color: '#ef4444', border: '1px solid #fca5a5', padding: '0.2rem 0.6rem', borderRadius: '12px', fontSize: '0.75rem', fontWeight: 700 }}>
+                  Inactive
+                </span>
+              ) : (
+                <span style={{ background: '#d1fae5', color: '#059669', border: '1px solid #6ee7b7', padding: '0.2rem 0.6rem', borderRadius: '12px', fontSize: '0.75rem', fontWeight: 700 }}>
+                  Active
+                </span>
+              )}
+            </div>
+            <p style={{ color: 'var(--text-muted)', marginTop: '0.2rem', marginBottom: 0 }}>
+              {member.role === 'manager' ? 'Manager' : 'Member'}
+              {member.status === 'inactive' && ' • (Past Member)'}
+            </p>
           </div>
         </div>
         
-        {/* Month Filter */}
-        <div style={{ display: 'flex', alignItems: 'center', background: '#fff', borderRadius: '8px', padding: '0.4rem 0.8rem', border: '1px solid rgba(0,0,0,0.1)' }}>
-          <Calendar size={18} color="var(--primary)" style={{ marginRight: '0.5rem' }} />
-          <input 
-            type="month" 
-            value={monthStr}
-            onChange={(e) => setMonthStr(e.target.value)}
-            style={{ border: 'none', background: 'transparent', outline: 'none', color: 'var(--text-main)', fontWeight: 600, cursor: 'pointer', fontFamily: 'inherit' }}
-          />
-        </div>
+        {/* Session / Month Filter */}
+        {sessions.length > 0 && (
+          <div style={{ display: 'flex', alignItems: 'center', background: '#fff', borderRadius: '8px', padding: '0.45rem 0.8rem', border: '1px solid var(--primary)', boxShadow: '0 2px 6px rgba(0,0,0,0.05)' }}>
+            <Calendar size={18} color="var(--primary)" style={{ marginRight: '0.5rem' }} />
+            <select 
+              value={session?.id || ''}
+              onChange={(e) => handleSessionChange(e.target.value)}
+              style={{ border: 'none', background: 'transparent', outline: 'none', color: 'var(--text-main)', fontWeight: 600, cursor: 'pointer', fontFamily: 'inherit', fontSize: '0.95rem' }}
+            >
+              {sessions.map(s => (
+                <option key={s.id} value={s.id}>
+                  {s.session_name} {s.status === 'closed' ? '(Closed)' : ''}
+                </option>
+              ))}
+            </select>
+          </div>
+        )}
       </div>
+
+      {sessions.length === 0 && (
+        <div style={{ textAlign: 'center', padding: '3rem 1rem', background: 'rgba(255, 255, 255, 0.3)', borderRadius: '12px', border: '1px solid rgba(255, 255, 255, 0.6)' }}>
+          <p style={{ color: 'var(--text-muted)' }}>No session history found for this member.</p>
+        </div>
+      )}
+
+      {analyticsLoading && (
+        <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', color: 'var(--text-muted)', marginBottom: '1.5rem' }}>
+          <Loader2 className="spin" size={18} /> Updating session analytics...
+        </div>
+      )}
 
       {analytics && (
         <>
@@ -289,7 +359,7 @@ export default function MemberProfilePage({ params }: { params: Promise<{ id: st
       )}
 
       {/* Activity Logs */}
-      <h3 style={{ fontSize: '1.25rem', fontWeight: 700, marginBottom: '1rem' }}>Activity History ({monthStr})</h3>
+      <h3 style={{ fontSize: '1.25rem', fontWeight: 700, marginBottom: '1rem' }}>Activity History ({session?.session_name || ''})</h3>
       {activities.length === 0 ? (
         <div style={{ textAlign: 'center', padding: '2rem 1rem', background: 'rgba(255, 255, 255, 0.3)', borderRadius: '12px', border: '1px solid rgba(255, 255, 255, 0.6)' }}>
           <Activity size={32} color="var(--border-light)" style={{ marginBottom: '1rem' }} />
