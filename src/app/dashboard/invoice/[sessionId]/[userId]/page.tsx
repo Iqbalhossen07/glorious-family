@@ -9,6 +9,7 @@ import { BazarService } from '@/services/bazar.service'
 import { DepositService } from '@/services/deposit.service'
 import { FixedExpenseService } from '@/services/fixed_expense.service'
 import { SettlementService } from '@/services/settlement.service'
+import { CircularSeal, PaidStamp } from '@/components/InvoiceSeals'
 
 export default function InvoicePage() {
   const params = useParams()
@@ -144,6 +145,8 @@ export default function InvoicePage() {
 
   const finalAmount = Number(settlement?.amount || Math.abs(stats.balance)).toFixed(2)
   const isDue = settlement?.type === 'receivable'
+  const isZeroBalance = Math.abs(stats.balance) < 0.5 || Number(finalAmount) === 0
+  const isCleared = settlement?.status === 'cleared' || isZeroBalance || stats.balance >= -0.01
   const settleType = isDue ? 'Due (Payable to Mess)' : 'Refund (Payable to Member)'
 
 
@@ -244,7 +247,22 @@ export default function InvoicePage() {
               </div>
               <div style={{ fontWeight: 600, textAlign: 'right', color: '#fff' }}>
                 <div style={{ marginBottom: '0.3rem' }}>{session.session_name}</div>
-                <div>{settlement?.status === 'cleared' ? 'Cleared' : 'Pending'}</div>
+                <div>
+                  <span style={{
+                    display: 'inline-block',
+                    padding: '0.15rem 0.5rem',
+                    borderRadius: '4px',
+                    fontSize: '0.75rem',
+                    fontWeight: 700,
+                    letterSpacing: '0.5px',
+                    textTransform: 'uppercase',
+                    background: isCleared ? 'rgba(255,255,255,0.22)' : 'rgba(239,68,68,0.35)',
+                    color: '#fff',
+                    border: '1px solid rgba(255,255,255,0.4)'
+                  }}>
+                    {isCleared ? '✓ Cleared' : '⏳ Pending'}
+                  </span>
+                </div>
               </div>
             </div>
           </div>
@@ -328,41 +346,71 @@ export default function InvoicePage() {
 
             </tbody>
           </table>
+        </div>
 
-          {/* Totals Block */}
-          <div className="totals-block">
-            {settlement?.status === 'cleared' && (
-              <div className="paid-stamp">
-                PAID
+        {/* Invoice Bottom Section: Seals + Totals */}
+        <div className="invoice-bottom-section" style={{ padding: '1.5rem 2rem 0' }}>
+          {/* Left: Official Seals & Manager Signature */}
+          <div className="seals-container">
+            <div className="seals-flex">
+              {/* Circular Notary Seal with All Member Names + Manager */}
+              <div className="seal-item">
+                <CircularSeal size={180} isCleared={isCleared} sessionName={session.session_name} />
               </div>
-            )}
-            <table style={{ width: '100%', fontSize: '0.9rem', position: 'relative', zIndex: 1, background: '#fff' }}>
+
+              {/* Slanted Official PAID Rubber Stamp */}
+              {isCleared && (
+                <div className="seal-item paid-stamp-item">
+                  <PaidStamp width={145} height={75} />
+                </div>
+              )}
+            </div>
+
+            {/* Manager Authorization Signature Line */}
+            <div className="manager-sign-block">
+              <div className="manager-sign-name">
+                Md. Iqbal Hossen
+              </div>
+              <div className="manager-sign-title">
+                Authorized Signatory
+              </div>
+              <div className="manager-sign-role">
+                Manager • Glorious Family
+              </div>
+            </div>
+          </div>
+
+          {/* Right: Totals Breakdown Table */}
+          <div className="totals-block">
+            <table style={{ width: '100%', fontSize: '0.9rem', background: '#fff', border: '1px solid #e2e8f0', borderRadius: '8px', overflow: 'hidden' }}>
               <tbody>
-                <tr>
-                  <td style={{ padding: '0.5rem 1rem', textAlign: 'right', color: '#000', fontWeight: 500 }}>Total Expense</td>
-                  <td style={{ padding: '0.5rem 1rem', textAlign: 'right', color: '#000', fontWeight: 700, width: '120px' }}>৳ {Number(stats.totalCost).toFixed(2)}</td>
+                <tr style={{ borderBottom: '1px solid #f1f5f9' }}>
+                  <td style={{ padding: '0.6rem 1rem', textAlign: 'right', color: '#475569', fontWeight: 500 }}>Total Expense</td>
+                  <td style={{ padding: '0.6rem 1rem', textAlign: 'right', color: '#0f172a', fontWeight: 700, width: '120px' }}>৳ {Number(stats.totalCost).toFixed(2)}</td>
                 </tr>
-                <tr>
-                  <td style={{ padding: '0.5rem 1rem', textAlign: 'right', color: '#000', fontWeight: 500 }}>Total Paid</td>
-                  <td style={{ padding: '0.5rem 1rem', textAlign: 'right', color: '#000', fontWeight: 700 }}>৳ {Number(stats.totalPaid).toFixed(2)}</td>
+                <tr style={{ borderBottom: '1px solid #f1f5f9' }}>
+                  <td style={{ padding: '0.6rem 1rem', textAlign: 'right', color: '#475569', fontWeight: 500 }}>Total Paid</td>
+                  <td style={{ padding: '0.6rem 1rem', textAlign: 'right', color: '#0f172a', fontWeight: 700 }}>৳ {Number(stats.totalPaid).toFixed(2)}</td>
                 </tr>
-                {settlement?.status === 'cleared' ? (
+                {isCleared ? (
                   <>
-                    <tr style={{ background: '#f1f5f9' }}>
-                      <td style={{ padding: '0.5rem 1rem', textAlign: 'right', color: '#000', fontWeight: 500 }}>
-                        {isDue ? 'Settled (Paid by Member)' : 'Settled (Refunded to Member)'}
-                      </td>
-                      <td style={{ padding: '0.5rem 1rem', textAlign: 'right', color: '#000', fontWeight: 700 }}>৳ {finalAmount}</td>
-                    </tr>
-                    <tr style={{ background: 'rgba(12, 173, 121, 0.1)' }}>
-                      <td style={{ padding: '1rem', textAlign: 'right', color: 'var(--primary)', fontWeight: 800, fontSize: '1.1rem' }}>Current Due</td>
-                      <td style={{ padding: '1rem', textAlign: 'right', color: 'var(--primary)', fontWeight: 800, fontSize: '1.1rem' }}>৳ 0.00</td>
+                    {Number(finalAmount) > 0 && (
+                      <tr style={{ background: '#f8fafc', borderBottom: '1px solid #e2e8f0' }}>
+                        <td style={{ padding: '0.5rem 1rem', textAlign: 'right', color: '#64748b', fontWeight: 500 }}>
+                          {isDue ? 'Settled (Paid by Member)' : 'Settled (Refunded)'}
+                        </td>
+                        <td style={{ padding: '0.5rem 1rem', textAlign: 'right', color: '#0f172a', fontWeight: 700 }}>৳ {finalAmount}</td>
+                      </tr>
+                    )}
+                    <tr style={{ background: 'rgba(12, 173, 121, 0.12)' }}>
+                      <td style={{ padding: '0.85rem 1rem', textAlign: 'right', color: '#047857', fontWeight: 800, fontSize: '1.05rem' }}>All Dues Cleared</td>
+                      <td style={{ padding: '0.85rem 1rem', textAlign: 'right', color: '#047857', fontWeight: 800, fontSize: '1.05rem' }}>৳ 0.00</td>
                     </tr>
                   </>
                 ) : (
                   <tr style={{ background: '#fef2f2' }}>
-                    <td style={{ padding: '1rem', textAlign: 'right', color: '#ef4444', fontWeight: 800, fontSize: '1.1rem' }}>{settleType}</td>
-                    <td style={{ padding: '1rem', textAlign: 'right', color: '#ef4444', fontWeight: 800, fontSize: '1.1rem' }}>৳ {finalAmount}</td>
+                    <td style={{ padding: '0.85rem 1rem', textAlign: 'right', color: '#ef4444', fontWeight: 800, fontSize: '1.05rem' }}>{settleType}</td>
+                    <td style={{ padding: '0.85rem 1rem', textAlign: 'right', color: '#ef4444', fontWeight: 800, fontSize: '1.05rem' }}>৳ {finalAmount}</td>
                   </tr>
                 )}
               </tbody>
@@ -371,7 +419,7 @@ export default function InvoicePage() {
         </div>
 
         {/* Bottom Bar */}
-        <div style={{ background: '#f8fafc', padding: '1rem 2rem', borderTop: '1px solid #e2e8f0', display: 'flex', justifyContent: 'space-between', fontSize: '0.8rem', color: '#000', marginTop: '3rem' }}>
+        <div style={{ background: '#f8fafc', padding: '1rem 2rem', borderTop: '1px solid #e2e8f0', display: 'flex', justifyContent: 'space-between', fontSize: '0.8rem', color: '#000', marginTop: '2.5rem' }}>
           <div>Thank you for using Glorious Family.</div>
           <div>Developed by Iqbal Hossen &copy; 2026</div>
         </div>
@@ -400,32 +448,64 @@ export default function InvoicePage() {
           width: 100%;
           overflow-x: auto;
         }
-        .totals-block {
+        .invoice-bottom-section {
           display: flex;
-          justify-content: flex-end;
-          margin-top: 1rem;
-          position: relative;
-          width: 350px;
-          margin-left: auto;
+          justify-content: space-between;
+          align-items: flex-end;
+          gap: 1.5rem;
+          flex-wrap: wrap;
         }
-        .paid-stamp {
-          position: absolute;
-          right: 100%;
-          top: 50%;
-          transform: translate(-10px, -50%) rotate(-10deg);
-          color: rgba(22, 163, 74, 0.2);
-          border: 4px solid rgba(22, 163, 74, 0.2);
-          border-radius: 8px;
-          padding: 0.2rem 1rem;
-          font-size: 2.5rem;
-          font-weight: 900;
-          letter-spacing: 2px;
-          z-index: 0;
-          pointer-events: none;
+        .seals-container {
+          display: flex;
+          flex-direction: column;
+          gap: 1rem;
+          flex: 1;
+          min-width: 280px;
+        }
+        .seals-flex {
+          display: flex;
+          align-items: center;
+          gap: 1.5rem;
+          flex-wrap: wrap;
+        }
+        .seal-item {
+          flex-shrink: 0;
+        }
+        .manager-sign-block {
+          margin-top: 0.5rem;
+          padding-top: 0.5rem;
+          border-top: 1.5px dashed #94a3b8;
+          width: 200px;
+          text-align: center;
+        }
+        .manager-sign-name {
+          font-family: 'Segoe Script', 'Brush Script MT', cursive, sans-serif;
+          font-size: 1.25rem;
+          color: #0f172a;
+          font-weight: 700;
+          line-height: 1.1;
+        }
+        .manager-sign-title {
+          font-size: 0.72rem;
+          font-weight: 800;
+          color: var(--primary);
+          margin-top: 3px;
+          text-transform: uppercase;
+          letter-spacing: 0.5px;
+        }
+        .manager-sign-role {
+          font-size: 0.68rem;
+          color: #64748b;
+          font-weight: 600;
+        }
+        .totals-block {
+          width: 340px;
+          flex-shrink: 0;
+          margin-left: auto;
         }
 
         /* Mobile Responsiveness */
-        @media (max-width: 600px) {
+        @media (max-width: 650px) {
           .invoice-header {
             flex-direction: column;
             align-items: flex-start;
@@ -450,13 +530,26 @@ export default function InvoicePage() {
           .table-responsive {
             padding: 0 1rem !important;
           }
-          .totals-block {
+          .invoice-bottom-section {
+            padding: 1.5rem 1rem 0 !important;
+            flex-direction: column-reverse;
+            align-items: center;
+            gap: 2rem;
+          }
+          .seals-container {
+            align-items: center;
+            text-align: center;
             width: 100%;
           }
-          .paid-stamp {
-            transform: translate(20%, -150%) rotate(-10deg);
-            right: auto;
-            left: 0;
+          .seals-flex {
+            justify-content: center;
+          }
+          .manager-sign-block {
+            margin: 0.5rem auto 0;
+          }
+          .totals-block {
+            width: 100%;
+            margin-left: 0;
           }
         }
 
@@ -509,8 +602,13 @@ export default function InvoicePage() {
           .invoice-addresses {
             flex-direction: row;
           }
+          .invoice-bottom-section {
+            flex-direction: row !important;
+            align-items: flex-end !important;
+            page-break-inside: avoid;
+          }
           .totals-block {
-            width: 350px;
+            width: 320px !important;
           }
         }
       `}} />
