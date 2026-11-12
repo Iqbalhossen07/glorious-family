@@ -8,16 +8,16 @@ interface CircularSealProps {
 }
 
 export function CircularSeal({ size = 180, sessionName, isCleared = true }: CircularSealProps) {
-  const sealColor = isCleared ? '#047857' : '#b45309'
+  const sealColor = isCleared ? '#1e40af' : '#b45309'
   const topText = '★ GLORIOUS FAMILY ★'
-  const bottomText = 'IQBAL (MGR) • ANTAR • ALAM • JAMAN • ANAMUL'
+  const bottomText = 'IQBAL • ANTAR • ALAM • JAMAN • ANAMUL'
 
   const topChars = topText.split('')
   const topSpan = 110 // degrees
   const topStep = topSpan / (topChars.length - 1)
 
   const bottomChars = bottomText.split('')
-  const bottomSpan = 160 // degrees
+  const bottomSpan = 145 // degrees
   const bottomStep = bottomSpan / (bottomChars.length - 1)
 
   const radius = (size / 2) - 22 // Distance from center to text baseline
@@ -120,9 +120,9 @@ export function CircularSeal({ size = 180, sessionName, isCleared = true }: Circ
               left: '50%',
               transform: `translate(-50%, -50%) translate(${x.toFixed(2)}px, ${y.toFixed(2)}px) rotate(${(-angle).toFixed(2)}deg)`,
               transformOrigin: 'center center',
-              fontSize: '7px',
+              fontSize: '7.5px',
               fontWeight: 800,
-              letterSpacing: '0.2px',
+              letterSpacing: '0.3px',
               color: sealColor,
               whiteSpace: 'pre',
               lineHeight: 1
