@@ -108,6 +108,9 @@ export function CircularSeal({ size = 180, sessionName, isCleared = true }: Circ
       {/* Bottom Arc Text: All 5 Members + Manager */}
       {bottomChars.map((char, i) => {
         const angle = -(bottomSpan / 2) + i * bottomStep
+        const rad = (angle * Math.PI) / 180
+        const x = (radius + 2) * Math.sin(rad)
+        const y = (radius + 2) * Math.cos(rad)
         return (
           <span
             key={`bot-${i}`}
@@ -115,13 +118,14 @@ export function CircularSeal({ size = 180, sessionName, isCleared = true }: Circ
               position: 'absolute',
               top: '50%',
               left: '50%',
-              transform: `translate(-50%, -50%) rotate(${angle}deg) translateY(${radius}px)`,
+              transform: `translate(-50%, -50%) translate(${x.toFixed(2)}px, ${y.toFixed(2)}px) rotate(${(-angle).toFixed(2)}deg)`,
               transformOrigin: 'center center',
-              fontSize: '7.5px',
+              fontSize: '7px',
               fontWeight: 800,
-              letterSpacing: '0.5px',
+              letterSpacing: '0.2px',
               color: sealColor,
-              whiteSpace: 'pre'
+              whiteSpace: 'pre',
+              lineHeight: 1
             }}
           >
             {char}
